@@ -1,0 +1,21 @@
+{
+  "monument_id": "pyramids_giza",
+  "name": "Pyramids of Giza",
+  "chunks": [
+    {
+      "text": "The Giza pyramid complex, on the outskirts of Cairo, Egypt, consists of the Great Pyramid of Giza (Pyramid of Khufu), the Pyramid of Khafre, and the Pyramid of Menkaure, along with their associated pyramid complexes and the Great Sphinx of Giza. All were built during the Fourth Dynasty of the Old Kingdom of Ancient Egypt, between roughly 2600 and 2500 BCE. The Great Pyramid is the oldest and largest of the three pyramids and is the oldest of the Seven Wonders of the Ancient World, and the only one to remain largely intact.",
+      "source": "Wikipedia — Giza pyramid complex",
+      "source_url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex"
+    },
+    {
+      "text": "The Great Pyramid of Khufu, originally standing at 146.5 metres (481 feet), was the tallest man-made structure in the world for more than 3,800 years, until the completion of Lincoln Cathedral in England around 1311 CE. It is estimated to have been built from approximately 2.3 million limestone blocks, each weighing an average of 2.5 tonnes. The precision of the pyramid's construction — its base is level to within just 2.1 centimetres across 230 metres — continues to astound engineers today.",
+      "source": "Wikipedia — Great Pyramid of Giza",
+      "source_url": "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
+    },
+    {
+      "text": "The pyramid complex at Giza was designated a UNESCO World Heritage Site in 1979 as part of 'Memphis and its Necropolis — the Pyramid Fields from Giza to Dahshur'. The site description notes that the funerary monuments of this ancient capital of Egypt 'bear witness to the civilisation of the pharaohs' and represent 'one of the most prodigious achievements of the ancient world'. Tourism to the pyramids has been a significant part of Egypt's economy for centuries.",
+      "source": "UNESCO World Heritage Centre",
+      "source_url": "https://whc.unesco.org/en/list/86"
+    }
+  ]
+}

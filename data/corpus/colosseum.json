@@ -1,0 +1,26 @@
+{
+  "monument_id": "colosseum",
+  "name": "Colosseum",
+  "chunks": [
+    {
+      "text": "The Colosseum, also known as the Flavian Amphitheatre, is an oval amphitheatre in the centre of Rome, Italy. Built of travertine limestone, tuff, and brick-faced concrete, it was the largest amphitheatre ever built at the time and held between 50,000 and 80,000 spectators. Construction began under Emperor Vespasian in 72 CE and was completed in 80 CE under his son and successor Titus.",
+      "source": "Wikipedia — Colosseum",
+      "source_url": "https://en.wikipedia.org/wiki/Colosseum"
+    },
+    {
+      "text": "The Colosseum was used for gladiatorial contests and public spectacles including animal hunts, executions, re-enactments of famous battles, and dramas based on Roman mythology. The building ceased to be used for entertainment in the early medieval era. It was later reused for housing, workshops, quarters for a religious order, a fortress, a quarry, and a Christian shrine.",
+      "source": "Wikipedia — Colosseum",
+      "source_url": "https://en.wikipedia.org/wiki/Colosseum"
+    },
+    {
+      "text": "The Colosseum is an iconic symbol of Imperial Rome and was listed as a UNESCO World Heritage Site in 1980. In 2007 it was named one of the New 7 Wonders of the World. Despite its ruined state due to earthquakes and stone-robbers, the Colosseum remains a popular tourist attraction in Rome with millions of visitors annually. It is also the most iconic monument of Rome and Italy.",
+      "source": "UNESCO World Heritage Centre",
+      "source_url": "https://whc.unesco.org/en/list/91"
+    },
+    {
+      "text": "The Colosseum's architecture introduced sophisticated engineering solutions including a complex system of vaults, an awning system (velarium) to shade spectators, and a hypogeum — an elaborate underground structure of tunnels and cages from which animals and scenery could be hoisted into the arena via 80 vertical shafts. The building's elliptical shape measures 189 metres long, 156 metres wide, and 48.5 metres tall.",
+      "source": "Italian Ministry of Cultural Heritage",
+      "source_url": "https://www.beniculturali.it/"
+    }
+  ]
+}

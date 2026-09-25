@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+venv/
+.venv/
+env/
+
+# Models (large binary files)
+backend/models/
+*.pth
+*.onnx
+*.tflite
+*.pt
+
+# Environment
+.env
+*.env.local
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+web-demo/dist/
+mobile/node_modules/
+
+# Temp
+static/restore/
+static/uploads/
+*.tmp
+*.log
+
+# Dataset (too large for git)
+classifier-training/dataset/
+data/sample_images/
+
+# Jupyter
+.ipynb_checkpoints/

@@ -1,0 +1,196 @@
+[
+  {
+    "id": "taj_mahal",
+    "name": "Taj Mahal",
+    "location": "Agra, Uttar Pradesh, India",
+    "coordinates": [27.1751, 78.0421],
+    "era": "1632–1653 CE",
+    "builder": "Emperor Shah Jahan",
+    "architectural_style": "Mughal architecture",
+    "unesco_status": "World Heritage Site (1983)",
+    "timeline": [
+      {"year": "1631", "event": "Mumtaz Mahal dies; Shah Jahan commissions the Taj Mahal"},
+      {"year": "1632", "event": "Construction begins under architect Ustad Ahmad Lahori"},
+      {"year": "1643", "event": "Main mausoleum structure completed"},
+      {"year": "1653", "event": "Entire complex completed — gardens, mosque, guest house"},
+      {"year": "1983", "event": "UNESCO World Heritage Site designation"}
+    ]
+  },
+  {
+    "id": "red_fort",
+    "name": "Red Fort",
+    "location": "Delhi, India",
+    "coordinates": [28.6562, 77.2410],
+    "era": "1638–1648 CE",
+    "builder": "Emperor Shah Jahan",
+    "architectural_style": "Mughal architecture",
+    "unesco_status": "World Heritage Site (2007)",
+    "timeline": [
+      {"year": "1638", "event": "Construction begins when Shah Jahan shifts capital to Delhi"},
+      {"year": "1648", "event": "Fort completed; becomes the residence of Mughal emperors"},
+      {"year": "1739", "event": "Nadir Shah invades and loots the fort including the Peacock Throne"},
+      {"year": "1857", "event": "Last Mughal emperor Bahadur Shah Zafar holds court here during the revolt"},
+      {"year": "2007", "event": "UNESCO World Heritage Site designation"}
+    ]
+  },
+  {
+    "id": "qutub_minar",
+    "name": "Qutub Minar",
+    "location": "Delhi, India",
+    "coordinates": [28.5245, 77.1855],
+    "era": "1192–1220 CE",
+    "builder": "Qutb ud-Din Aibak, continued by Iltutmish",
+    "architectural_style": "Indo-Islamic architecture",
+    "unesco_status": "World Heritage Site (1993)",
+    "timeline": [
+      {"year": "1192", "event": "Construction begun by Qutb ud-Din Aibak after defeating the last Hindu kingdom in Delhi"},
+      {"year": "1220", "event": "Top three storeys completed by Iltutmish"},
+      {"year": "1368", "event": "Top storey damaged by lightning; Firoz Shah Tughlaq repairs and adds two more storeys"},
+      {"year": "1993", "event": "UNESCO World Heritage Site designation"}
+    ]
+  },
+  {
+    "id": "colosseum",
+    "name": "Colosseum",
+    "location": "Rome, Italy",
+    "coordinates": [41.8902, 12.4922],
+    "era": "70–80 CE",
+    "builder": "Emperor Vespasian, completed by Titus",
+    "architectural_style": "Roman architecture",
+    "unesco_status": "World Heritage Site (1980)",
+    "timeline": [
+      {"year": "70 CE", "event": "Construction begins under Emperor Vespasian"},
+      {"year": "80 CE", "event": "Inaugurated by Emperor Titus with 100 days of games"},
+      {"year": "217 CE", "event": "Major fire caused by lightning damages the upper levels"},
+      {"year": "1349", "event": "Powerful earthquake causes the entire south side to collapse"},
+      {"year": "1980", "event": "Designated a UNESCO World Heritage Site"}
+    ]
+  },
+  {
+    "id": "eiffel_tower",
+    "name": "Eiffel Tower",
+    "location": "Paris, France",
+    "coordinates": [48.8584, 2.2945],
+    "era": "1887–1889 CE",
+    "builder": "Gustave Eiffel",
+    "architectural_style": "Wrought-iron lattice tower",
+    "unesco_status": "Part of 'Paris, Banks of the Seine' UNESCO site (1991)",
+    "timeline": [
+      {"year": "1884", "event": "Maurice Koechlin and Émile Nouguier create the initial design"},
+      {"year": "1887", "event": "Construction begins on the Champ de Mars"},
+      {"year": "1889", "event": "Completed for the Exposition Universelle; becomes world's tallest structure at 300m"},
+      {"year": "1957", "event": "Antenna added, increasing height to 330m"},
+      {"year": "1991", "event": "Included in the UNESCO 'Paris, Banks of the Seine' World Heritage Site"}
+    ]
+  },
+  {
+    "id": "pyramids_giza",
+    "name": "Pyramids of Giza",
+    "location": "Giza, Egypt",
+    "coordinates": [29.9792, 31.1342],
+    "era": "c. 2580–2560 BCE",
+    "builder": "Pharaohs Khufu, Khafre, and Menkaure",
+    "architectural_style": "Ancient Egyptian architecture",
+    "unesco_status": "World Heritage Site (1979)",
+    "timeline": [
+      {"year": "c. 2580 BCE", "event": "Great Pyramid of Khufu construction begins"},
+      {"year": "c. 2560 BCE", "event": "Great Pyramid completed — tallest man-made structure for 3,800 years"},
+      {"year": "c. 2530 BCE", "event": "Pyramid of Khafre and the Great Sphinx constructed"},
+      {"year": "c. 2510 BCE", "event": "Pyramid of Menkaure, the smallest of the three, completed"},
+      {"year": "1979", "event": "Memphis Necropolis designated UNESCO World Heritage Site"}
+    ]
+  },
+  {
+    "id": "machu_picchu",
+    "name": "Machu Picchu",
+    "location": "Cusco Region, Peru",
+    "coordinates": [-13.1631, -72.5450],
+    "era": "c. 1450 CE",
+    "builder": "Emperor Pachacuti of the Inca Empire",
+    "architectural_style": "Inca architecture",
+    "unesco_status": "World Heritage Site (1983)",
+    "timeline": [
+      {"year": "c. 1450", "event": "Built as an estate for Emperor Pachacuti"},
+      {"year": "1572", "event": "Abandoned during the Spanish Conquest"},
+      {"year": "1911", "event": "Rediscovered by American historian Hiram Bingham III"},
+      {"year": "1983", "event": "Designated a UNESCO World Heritage Site"}
+    ]
+  },
+  {
+    "id": "hawa_mahal",
+    "name": "Hawa Mahal",
+    "location": "Jaipur, Rajasthan, India",
+    "coordinates": [26.9239, 75.8267],
+    "era": "1799 CE",
+    "builder": "Maharaja Sawai Pratap Singh",
+    "architectural_style": "Rajput architecture",
+    "timeline": [
+      {"year": "1799", "event": "Built by Maharaja Sawai Pratap Singh so royal women could observe street life without being seen"},
+      {"year": "1876", "event": "Jaipur painted pink to welcome Prince of Wales — Hawa Mahal included"},
+      {"year": "2006", "event": "Major restoration project completed"}
+    ]
+  },
+  {
+    "id": "angkor_wat",
+    "name": "Angkor Wat",
+    "location": "Siem Reap, Cambodia",
+    "coordinates": [13.4125, 103.8670],
+    "era": "12th century CE",
+    "builder": "King Suryavarman II",
+    "architectural_style": "Khmer architecture",
+    "unesco_status": "World Heritage Site (1992)",
+    "timeline": [
+      {"year": "c. 1113", "event": "Construction begins under King Suryavarman II"},
+      {"year": "c. 1150", "event": "Temple complex completed — largest religious monument in the world"},
+      {"year": "13th century", "event": "Gradually converted from Hindu to Buddhist temple"},
+      {"year": "1992", "event": "Designated a UNESCO World Heritage Site"}
+    ]
+  },
+  {
+    "id": "gateway_of_india",
+    "name": "Gateway of India",
+    "location": "Mumbai, Maharashtra, India",
+    "coordinates": [18.9220, 72.8347],
+    "era": "1911–1924 CE",
+    "builder": "George Wittet (architect)",
+    "architectural_style": "Indo-Saracenic architecture",
+    "timeline": [
+      {"year": "1911", "event": "Foundation stone laid to commemorate the visit of King George V and Queen Mary"},
+      {"year": "1924", "event": "Construction completed; ceremonial arch opened"},
+      {"year": "1948", "event": "Last British troops march through the Gateway, symbolizing the end of British rule in India"}
+    ]
+  },
+  {
+    "id": "parthenon",
+    "name": "Parthenon",
+    "location": "Athens, Greece",
+    "coordinates": [37.9715, 23.7267],
+    "era": "447–432 BCE",
+    "builder": "Pericles, architects Ictinus and Callicrates",
+    "architectural_style": "Classical Greek (Doric order)",
+    "unesco_status": "World Heritage Site (1987)",
+    "timeline": [
+      {"year": "447 BCE", "event": "Construction begins under Pericles' building program"},
+      {"year": "438 BCE", "event": "Colossal chryselephantine statue of Athena by Phidias installed"},
+      {"year": "432 BCE", "event": "Sculptural decoration completed"},
+      {"year": "1687", "event": "Venetian bombardment causes massive explosion, destroying the roof"},
+      {"year": "1987", "event": "Acropolis designated a UNESCO World Heritage Site"}
+    ]
+  },
+  {
+    "id": "statue_of_liberty",
+    "name": "Statue of Liberty",
+    "location": "New York, USA",
+    "coordinates": [40.6892, -74.0445],
+    "era": "1875–1886 CE",
+    "builder": "Frédéric Auguste Bartholdi (sculptor), Alexandre Gustave Eiffel (structural engineer)",
+    "architectural_style": "Neoclassical",
+    "unesco_status": "World Heritage Site (1984)",
+    "timeline": [
+      {"year": "1875", "event": "Construction begins in France"},
+      {"year": "1884", "event": "Statue completed in Paris and disassembled for shipping"},
+      {"year": "1886", "event": "Dedicated in New York Harbor — a gift from France"},
+      {"year": "1984", "event": "Designated a UNESCO World Heritage Site"}
+    ]
+  }
+]
