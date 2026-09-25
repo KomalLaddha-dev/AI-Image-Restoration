@@ -19,7 +19,7 @@ import numpy as np
 from loguru import logger
 
 from app.models.schemas import RestorationStage, RestoreOptions, StageResult
-from app.ml.stages.old_photo_repair import OldPhotoRepairStage
+from app.ml.stages.bopbtl_restore import BOPBTLStage
 from app.ml.stages.denoise_deblur import DenoiseDeblurStage
 from app.ml.stages.face_restore import FaceRestoreStage
 from app.ml.stages.colorize import ColorizeStage
@@ -34,6 +34,7 @@ class PipelineResult:
     restored: np.ndarray
     stage_results: list[StageResult] = field(default_factory=list)
     total_time_ms: int = 0
+    warnings: list[str] = field(default_factory=list)
 
 
 class RestorationPipeline:
@@ -56,7 +57,7 @@ class RestorationPipeline:
 
     def __init__(self):
         self._stages: dict[RestorationStage, object] = {
-            RestorationStage.OLD_PHOTO_REPAIR: OldPhotoRepairStage(),
+            RestorationStage.OLD_PHOTO_REPAIR: BOPBTLStage(),
             RestorationStage.DENOISE: DenoiseDeblurStage(),
             RestorationStage.FACE_RESTORE: FaceRestoreStage(),
             RestorationStage.COLORIZE: ColorizeStage(),
@@ -86,6 +87,7 @@ class RestorationPipeline:
 
         pipeline_start = time.perf_counter()
         stage_results: list[StageResult] = []
+        warnings: list[str] = []
         original = image.copy()
         current = image.copy()
 
@@ -93,9 +95,16 @@ class RestorationPipeline:
         current, scale = resize_if_needed(current, max_side=2048)
         if scale < 1.0:
             logger.info(f"Input image resized by {scale:.2f}x before pipeline")
+            warnings.append(f"Input image resized to avoid OOM.")
 
-        # Execute stages in canonical order, only if enabled
-        enabled = set(options.stages)
+        # Determine enabled stages based on PRD
+        enabled = {RestorationStage.OLD_PHOTO_REPAIR, RestorationStage.UPSCALE}
+        if options.denoise:
+            enabled.add(RestorationStage.DENOISE)
+        if options.face_restore:
+            enabled.add(RestorationStage.FACE_RESTORE)
+        if options.colorize:
+            enabled.add(RestorationStage.COLORIZE)
 
         for stage_key in self.STAGE_ORDER:
             if stage_key not in enabled:
@@ -109,12 +118,23 @@ class RestorationPipeline:
 
             try:
                 logger.info(f"Running stage: {stage_key.value}")
+                h_in, w_in = current.shape[:2]
+                
                 current = await stage.process(current)
+                
+                h_out, w_out = current.shape[:2]
                 elapsed_ms = int((time.perf_counter() - stage_start) * 1000)
                 stage_results.append(
                     StageResult(stage=stage_key.value, processing_time_ms=elapsed_ms)
                 )
-                logger.info(f"Stage {stage_key.value} completed in {elapsed_ms}ms")
+                
+                # PRD Logging Requirement #9
+                from app.config import get_settings
+                device_str = "GPU" if get_settings().device == "cuda" else "CPU"
+                logger.info(
+                    f"Stage [{stage_key.value}] | Time: {elapsed_ms}ms | Device: {device_str} | "
+                    f"Input: {w_in}x{h_in} | Output: {w_out}x{h_out}"
+                )
 
             except Exception as e:
                 elapsed_ms = int((time.perf_counter() - stage_start) * 1000)
@@ -126,7 +146,11 @@ class RestorationPipeline:
                         applied=False,
                     )
                 )
-                # Continue pipeline — don't let one stage failure stop everything
+                warnings.append(f"{stage_key.value} failed: {e}")
+                
+                # PRD: If BOPBTL cannot initialize, fail explicitly.
+                if stage_key == RestorationStage.OLD_PHOTO_REPAIR:
+                    raise RuntimeError(f"Mandatory stage BOPBTL failed: {e}") from e
 
         total_ms = int((time.perf_counter() - pipeline_start) * 1000)
 
@@ -140,6 +164,7 @@ class RestorationPipeline:
             restored=current,
             stage_results=stage_results,
             total_time_ms=total_ms,
+            warnings=warnings
         )
 
     def get_loaded_models(self) -> list[str]:

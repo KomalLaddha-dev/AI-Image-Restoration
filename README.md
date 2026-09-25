@@ -13,10 +13,10 @@
 ## ✨ Features
 
 ### 🖼️ Image Restoration Pipeline
-- **5-stage ML pipeline**: Old photo repair → Denoise/Deblur → Face restore → Colorize → Upscale
-- **Models**: Real-ESRGAN, GFPGAN, DDColor, NAFNet + classical CV fallbacks
-- **Toggleable stages**: Enable/disable any stage per request
-- **Before/after comparison**: Visual side-by-side slider
+- **5-stage ML pipeline**: BOPBTL (Old Photo Repair) → Denoise/Deblur → Face restore → Colorize → Upscale
+- **Models**: BOPBTL, Real-ESRGAN, GFPGAN, DDColor, NAFNet
+- **Request Options**: `face_restore`, `colorize`, `denoise`
+- **Modes**: standard, portrait, colorize, advanced
 
 ### 🏛️ Monument Recognition
 - **MobileNetV3-Large**: Fine-tuned classifier for 50+ India + World landmarks
@@ -98,8 +98,8 @@ Once running, visit:
 │  (Vite + React) │     │                                  │
 ├─────────────────┤     │  ┌──────────────────────────────┐│
 │  Mobile App     │────▶│  │ Restoration Pipeline         ││
-│  (Expo / RN)    │     │  │ Old Photo → Denoise → Face   ││
-└─────────────────┘     │  │ → Colorize → Upscale         ││
+│  (Expo / RN)    │     │  │ BOPBTL → GFPGAN → DDColor    ││
+└─────────────────┘     │  │ → Real-ESRGAN                ││
                         │  └──────────────────────────────┘│
                         │  ┌────────────┐ ┌───────────────┐│
                         │  │ MobileNet  │ │ RAG: FAISS +  ││
@@ -133,7 +133,7 @@ Once running, visit:
 
 | Stage | Model | Source |
 |-------|-------|--------|
-| Old Photo Repair | Classical CV (scratch detect + inpaint + CLAHE) | OpenCV |
+| Old Photo Repair | Bringing-Old-Photos-Back-to-Life | Microsoft |
 | Denoise/Deblur | NAFNet-REDS-width64 | megvii-research |
 | Face Restore | GFPGAN v1.4 | TencentARC |
 | Colorize | DDColor | piddnad |

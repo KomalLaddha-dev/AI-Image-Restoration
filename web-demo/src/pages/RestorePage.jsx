@@ -5,11 +5,9 @@ import ProgressBar from '../components/ProgressBar';
 import { restoreSync } from '../utils/api';
 
 const STAGES = [
-  { key: 'old_photo_repair', label: '🩹 Scratch Repair', default: true },
-  { key: 'denoise', label: '🔇 Denoise', default: true },
-  { key: 'face_restore', label: '👤 Face Restore', default: true },
-  { key: 'colorize', label: '🎨 Colorize', default: true },
-  { key: 'upscale', label: '🔍 Upscale 4x', default: true },
+  { key: 'denoise', label: '🔇 Denoise', default: false },
+  { key: 'face_restore', label: '👤 Face Restore', default: false },
+  { key: 'colorize', label: '🎨 Colorize', default: false },
 ];
 
 export default function RestorePage() {
@@ -51,7 +49,14 @@ export default function RestorePage() {
         setProgress(prev => Math.min(prev + 8, 90));
       }, 500);
 
-      const data = await restoreSync(originalFile, { stages });
+      const options = {
+        face_restore: stages.includes('face_restore'),
+        colorize: stages.includes('colorize'),
+        denoise: stages.includes('denoise'),
+        mode: 'standard'
+      };
+
+      const data = await restoreSync(originalFile, options);
 
       clearInterval(progressInterval);
       setProgress(100);
@@ -115,7 +120,7 @@ export default function RestorePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginTop: 'var(--space-3)' }}>
                 <div className="spinner" />
                 <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                  Running {stages.length} restoration stages...
+                  Running pipeline (BOPBTL + Upscale + {stages.length} optional stages)...
                 </span>
               </div>
             </div>
@@ -198,7 +203,7 @@ export default function RestorePage() {
                 <button
                   onClick={handleRestore}
                   className="btn btn-primary"
-                  disabled={isProcessing || stages.length === 0}
+                  disabled={isProcessing}
                 >
                   {isProcessing ? 'Processing...' : '✨ Restore Image'}
                 </button>

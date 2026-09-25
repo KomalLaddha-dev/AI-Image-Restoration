@@ -21,7 +21,9 @@ class JobStatus(str, Enum):
 
 class RestorationMode(str, Enum):
     STANDARD = "standard"
-    ENHANCED = "enhanced"  # Stretch: diffusion mode
+    PORTRAIT = "portrait"
+    COLORIZE = "colorize"
+    ADVANCED = "advanced"
 
 
 class RestorationStage(str, Enum):
@@ -36,18 +38,12 @@ class RestorationStage(str, Enum):
 
 class RestoreOptions(BaseModel):
     """Options sent with a restoration request."""
-    stages: list[RestorationStage] = Field(
-        default=[
-            RestorationStage.DENOISE,
-            RestorationStage.FACE_RESTORE,
-            RestorationStage.COLORIZE,
-            RestorationStage.UPSCALE,
-        ],
-        description="Which restoration stages to apply (in order).",
-    )
+    face_restore: bool = Field(default=False, description="Enable face restoration (GFPGAN)")
+    colorize: bool = Field(default=False, description="Enable colorization (DDColor)")
+    denoise: bool = Field(default=False, description="Enable denoising/deblurring (NAFNet)")
     mode: RestorationMode = Field(
         default=RestorationMode.STANDARD,
-        description="Standard (fast) or Enhanced (diffusion, slower).",
+        description="Standard, portrait, colorize, or advanced.",
     )
 
 
@@ -76,6 +72,7 @@ class RestoreResultResponse(BaseModel):
     created_at: datetime | None = None
     completed_at: datetime | None = None
     error_message: str | None = None
+    warnings: list[str] = []
 
 
 # ─── Monument Identification ─────────────────────────────────────────────────

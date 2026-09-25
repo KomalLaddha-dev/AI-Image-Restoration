@@ -88,6 +88,7 @@ class RestorationService:
                 restored_url=f"/static/restore/{job_id}_restored.png",
                 stages_applied=result.stage_results,
                 total_processing_time_ms=result.total_time_ms,
+                warnings=result.warnings,
             )
 
             return await job_manager.get_job(job_id)

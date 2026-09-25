@@ -87,7 +87,7 @@ class UpscaleStage:
 
         if self.is_available():
             try:
-                output, _ = self._model.enhance(img, outscale=4)
+                output, _ = self._model.enhance(img, outscale=2)
                 elapsed = (time.perf_counter() - start) * 1000
                 logger.info(
                     f"Upscale (Real-ESRGAN): {img.shape[1]}x{img.shape[0]} → "
@@ -97,11 +97,11 @@ class UpscaleStage:
             except Exception as e:
                 logger.error(f"Real-ESRGAN failed, falling back to bicubic: {e}")
 
-        # Fallback: bicubic 4x upscale
+        # Fallback: bicubic 2x upscale
         h, w = img.shape[:2]
-        output = cv2.resize(img, (w * 4, h * 4), interpolation=cv2.INTER_CUBIC)
+        output = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
         elapsed = (time.perf_counter() - start) * 1000
-        logger.info(f"Upscale (fallback bicubic): {w}x{h} → {w*4}x{h*4} in {elapsed:.0f}ms")
+        logger.info(f"Upscale (fallback bicubic): {w}x{h} → {w*2}x{h*2} in {elapsed:.0f}ms")
         return output
 
     def unload(self) -> None:
