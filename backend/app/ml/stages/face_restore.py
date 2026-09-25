@@ -34,6 +34,12 @@ class FaceRestoreStage:
 
         settings = get_settings()
         try:
+            # Patch for basicsr which expects an older torchvision structure
+            import torchvision.transforms.functional
+            import sys
+            if 'torchvision.transforms.functional_tensor' not in sys.modules:
+                sys.modules['torchvision.transforms.functional_tensor'] = torchvision.transforms.functional
+
             from gfpgan import GFPGANer
 
             model_path = Path(settings.model_dir) / "GFPGANv1.4.pth"

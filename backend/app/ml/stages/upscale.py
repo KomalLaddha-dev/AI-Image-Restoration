@@ -33,6 +33,12 @@ class UpscaleStage:
 
         settings = get_settings()
         try:
+            # Patch for basicsr which expects an older torchvision structure
+            import torchvision.transforms.functional
+            import sys
+            if 'torchvision.transforms.functional_tensor' not in sys.modules:
+                sys.modules['torchvision.transforms.functional_tensor'] = torchvision.transforms.functional
+
             from basicsr.archs.rrdbnet_arch import RRDBNet
             from realesrgan import RealESRGANer
 
@@ -52,7 +58,7 @@ class UpscaleStage:
                 scale=4,
                 model_path=str(model_path) if model_path.exists() else None,
                 model=rrdb_model,
-                tile=0,  # 0 = no tiling; set to 256/512 for low-VRAM GPUs
+                tile=400,  # Process in 400x400 chunks to prevent CPU OOM
                 tile_pad=10,
                 pre_pad=0,
                 half=False,  # fp16 only on GPU

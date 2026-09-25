@@ -15,7 +15,7 @@ from app.ml.rag.retriever import Chunk
 class Generator:
     """Groq-powered grounded text generation for historical info."""
 
-    MODEL = "mixtral-8x7b-32768"
+    MODEL = "qwen/qwen3.8-27b"
     MAX_TOKENS = 600
     TEMPERATURE = 0.3  # Low for factual accuracy
 

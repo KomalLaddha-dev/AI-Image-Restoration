@@ -55,7 +55,7 @@ async def identify_and_inform(
     history = None
     try:
         from app.api.history import get_monument_history
-        history = await get_monument_history(identification.monument_id)
+        history = await get_monument_history(identification.monument_id, query=None)
     except HTTPException:
         logger.warning(f"No history found for {identification.monument_id}")
     except Exception as e:

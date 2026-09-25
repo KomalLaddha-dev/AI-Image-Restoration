@@ -26,21 +26,20 @@ MODELS = {
         "size_mb": 348,
         "description": "GFPGAN v1.4 face restoration (Stage 3)",
     },
+    "ddcolor_modelscope.pth": {
+        "url": "https://huggingface.co/piddnad/DDColor-models/resolve/main/ddcolor_modelscope.pth",
+        "size_mb": 331,
+        "description": "DDColor colorization model (Stage 4)",
+    },
+    "NAFNet-REDS-width64.pth": {
+        "url": "https://huggingface.co/nyanko7/nafnet-models/resolve/main/NAFNet-REDS-width64.pth",
+        "size_mb": 260,
+        "description": "NAFNet denoising/deblur model (Stage 2)",
+    },
 }
 
 # These models require manual download due to licensing or complex setup:
-MANUAL_MODELS = {
-    "ddcolor_modelscope.pth": {
-        "source": "https://huggingface.co/piddnad/DDColor/tree/main",
-        "description": "DDColor colorization model (Stage 4)",
-        "instructions": "Download from HuggingFace and place in models/ directory",
-    },
-    "NAFNet-REDS-width64.pth": {
-        "source": "https://github.com/megvii-research/NAFNet",
-        "description": "NAFNet denoising/deblur model (Stage 2)",
-        "instructions": "Download from the NAFNet GitHub releases page",
-    },
-}
+MANUAL_MODELS = {}
 
 
 def download_file(url: str, dest: Path, description: str = "") -> bool:
