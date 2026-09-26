@@ -1,9 +1,16 @@
-const API_BASE = '';  // Uses Vite proxy in dev, same-origin in prod
+import type {
+  HistoryResponse,
+  IdentifyResultData,
+  RestoreOptions,
+  RestoreResult,
+} from '../types';
+
+const API_BASE = ''; // Uses Vite proxy in dev, same-origin in prod
 
 /**
  * Submit an image for restoration (async).
  */
-export async function submitRestore(file, options = {}) {
+export async function submitRestore(file: File, options: Partial<RestoreOptions> = {}): Promise<{ job_id: string; message: string }> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('options', JSON.stringify(options));
@@ -13,23 +20,26 @@ export async function submitRestore(file, options = {}) {
     body: formData,
   });
 
-  if (!res.ok) throw new Error(`Restore failed: ${res.statusText}`);
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => res.statusText);
+    throw new Error(`Restore failed (${res.status}): ${errorText}`);
+  }
   return res.json();
 }
 
 /**
  * Poll restoration job status.
  */
-export async function getRestoreResult(jobId) {
+export async function getRestoreResult(jobId: string) {
   const res = await fetch(`${API_BASE}/api/v1/restore/${jobId}`);
   if (!res.ok) throw new Error(`Job poll failed: ${res.statusText}`);
   return res.json();
 }
 
 /**
- * Synchronous restore — returns image blob directly.
+ * Synchronous restore — returns image blob directly with processing metadata.
  */
-export async function restoreSync(file, options = {}) {
+export async function restoreSync(file: File, options: Partial<RestoreOptions> = {}): Promise<RestoreResult> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('options', JSON.stringify(options));
@@ -39,7 +49,10 @@ export async function restoreSync(file, options = {}) {
     body: formData,
   });
 
-  if (!res.ok) throw new Error(`Sync restore failed: ${res.statusText}`);
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => res.statusText);
+    throw new Error(`Restoration failed (${res.status}): ${errBody}`);
+  }
 
   const blob = await res.blob();
   const processingTime = res.headers.get('X-Processing-Time-Ms');
@@ -48,7 +61,7 @@ export async function restoreSync(file, options = {}) {
   return {
     blob,
     url: URL.createObjectURL(blob),
-    processingTime: parseInt(processingTime || '0'),
+    processingTime: parseInt(processingTime || '0', 10),
     stages: stages ? stages.split(',') : [],
   };
 }
@@ -56,7 +69,7 @@ export async function restoreSync(file, options = {}) {
 /**
  * Identify a monument from an image.
  */
-export async function identifyMonument(file) {
+export async function identifyMonument(file: File): Promise<IdentifyResultData> {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -65,24 +78,30 @@ export async function identifyMonument(file) {
     body: formData,
   });
 
-  if (!res.ok) throw new Error(`Identify failed: ${res.statusText}`);
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => res.statusText);
+    throw new Error(`Identification failed (${res.status}): ${errBody}`);
+  }
   return res.json();
 }
 
 /**
  * Get historical information for a monument.
  */
-export async function getHistory(monumentId, query = null) {
+export async function getHistory(monumentId: string, query: string | null = null): Promise<HistoryResponse> {
   const params = query ? `?query=${encodeURIComponent(query)}` : '';
   const res = await fetch(`${API_BASE}/api/v1/history/${monumentId}${params}`);
-  if (!res.ok) throw new Error(`History failed: ${res.statusText}`);
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => res.statusText);
+    throw new Error(`History lookup failed (${res.status}): ${errBody}`);
+  }
   return res.json();
 }
 
 /**
  * Combined: identify + get history in one call.
  */
-export async function identifyAndInform(file) {
+export async function identifyAndInform(file: File) {
   const formData = new FormData();
   formData.append('file', file);
 

@@ -1,124 +1,135 @@
 @import "tailwindcss";
+@config "../tailwind.config.ts";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
-  
-  --color-heritage-50: #fbf7f1;
-  --color-heritage-100: #f5eedf;
-  --color-heritage-200: #ead8be;
-  --color-heritage-300: #dfbb92;
-  --color-heritage-400: #d49c66;
-  --color-heritage-500: #ca8342;
-  --color-heritage-600: #bc6b36;
-  --color-heritage-700: #9c522f;
-  --color-heritage-800: #80452a;
-  --color-heritage-900: #673a25;
-  --color-heritage-950: #381c11;
-  
-  --color-dark-50: #f6f6f6;
-  --color-dark-100: #e7e7e7;
-  --color-dark-200: #d1d1d1;
-  --color-dark-300: #b0b0b0;
-  --color-dark-400: #888888;
-  --color-dark-500: #6d6d6d;
-  --color-dark-600: #5d5d5d;
-  --color-dark-700: #4f4f4f;
-  --color-dark-800: #454545;
-  --color-dark-900: #3d3d3d;
-  --color-dark-950: #0a0a0a;
+  --font-heading: "Source Serif 4", "Lora", Georgia, serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --color-gold-50: #fdfbf7;
-  --color-gold-100: #fcf6eb;
-  --color-gold-200: #f6e8d1;
-  --color-gold-300: #ebd3a8;
-  --color-gold-400: #dfb978;
-  --color-gold-500: #d4a853; /* Original accent-gold */
-  --color-gold-600: #c18b3e;
-  --color-gold-700: #a16b32;
-  --color-gold-800: #84552e;
-  --color-gold-900: #6d4628;
-  --color-gold-950: #3d2412;
+  --color-canvas: var(--color-canvas);
+  --color-surface: var(--color-surface);
+  --color-surface-subtle: var(--color-surface-subtle);
+  --color-surface-hover: var(--color-surface-hover);
+
+  --color-accent-sepia: #c49746;
+  --color-accent-sepia-hover: #b08435;
+  --color-accent-sepia-light: #dfb76c;
+  --color-accent-sepia-faint: rgba(196, 151, 70, 0.12);
+
+  --color-accent-green: #2e6948;
+  --color-accent-green-hover: #245439;
+  --color-accent-green-light: #3f8d62;
+  --color-accent-green-faint: rgba(46, 105, 72, 0.12);
+
+  --color-accent-brown: #7c4a27;
+  --color-accent-brown-hover: #663b1d;
+  --color-accent-brown-light: #9e6136;
+  --color-accent-brown-faint: rgba(124, 74, 39, 0.12);
+
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+
+  --color-border-theme: var(--color-border-theme);
+  --color-border-subtle: var(--color-border-subtle);
+
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+  --spacing-26: 6.5rem;
+  --spacing-30: 7.5rem;
+  --spacing-34: 8.5rem;
+  --spacing-38: 9.5rem;
 }
 
-@layer base {
-  :root {
-    --color-bg-primary: #0a0a0f;
-    --color-bg-secondary: #111118;
-  }
-  
-  html {
-    @apply antialiased scroll-smooth;
-  }
-  
-  body {
-    @apply bg-[#0a0a0f] text-[#f0ece4] font-sans min-h-screen overflow-x-hidden selection:bg-gold-500/30 selection:text-gold-100;
-  }
+:root {
+  --color-canvas: #fbf9f5;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f4f0e8;
+  --color-surface-hover: #ece6d8;
+  --color-ink: #18181b;
+  --color-ink-muted: #666670;
+  --color-ink-faint: #9ca3af;
+  --color-border-theme: rgba(0, 0, 0, 0.08);
+  --color-border-subtle: rgba(0, 0, 0, 0.04);
+}
 
-  /* Subtle radial background glow from original */
-  body::before {
-    content: '';
-    position: fixed;
-    top: -30%;
-    left: -10%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(212, 168, 83, 0.05) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: -1;
-  }
+.dark {
+  --color-canvas: #141416;
+  --color-surface: #1c1c1f;
+  --color-surface-subtle: #242428;
+  --color-surface-hover: #2c2c32;
+  --color-ink: #f4f4f6;
+  --color-ink-muted: #a1a1aa;
+  --color-ink-faint: #71717a;
+  --color-border-theme: rgba(255, 255, 255, 0.10);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+}
 
-  body::after {
-    content: '';
-    position: fixed;
-    bottom: -20%;
-    right: -10%;
-    width: 50%;
-    height: 50%;
-    background: radial-gradient(circle, rgba(240, 160, 48, 0.03) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: -1;
-  }
+html {
+  font-family: var(--font-body);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  /* Smooth inputs */
-  input, textarea, button {
-    @apply outline-none focus:ring-0;
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── Narrow Glassmorphism Utility ─────────────────────────────────────────────
+   Reserved for small floating elements directly over a photo:
+   - Slider handle/divider
+   - Floating CTA over photo preview
+   - Dropzone drag-over highlight
+   - Text overlay badge/card on hero
+───────────────────────────────────────────────────────────────────────────── */
+.glass-panel {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.20);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25), 0 8px 32px -4px rgba(0, 0, 0, 0.25);
+}
+
+.dark .glass-panel {
+  background: rgba(18, 18, 22, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Ken Burns Animation for Authoritative History Hero ───────────────────── */
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.0) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.06) translate(-1%, -0.8%);
+  }
+  100% {
+    transform: scale(1.0) translate(0, 0);
   }
 }
 
-@layer components {
-  /* ── Glass Card ──────────────────────────────────────────────────── */
-  .glass-card {
-    @apply bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl transition-all duration-300 ease-out;
-  }
-  
-  .glass-card:hover {
-    @apply bg-white/[0.05] border-gold-500/30 shadow-[0_0_30px_rgba(212,168,83,0.1)] -translate-y-0.5;
-  }
+.animate-ken-burns {
+  animation: ken-burns 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
 
-  .text-gradient {
-    @apply bg-gradient-to-br from-gold-300 via-gold-500 to-amber-600 bg-clip-text text-transparent;
+@media (prefers-reduced-motion: reduce) {
+  .animate-ken-burns {
+    animation: none !important;
   }
+}
 
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-300 ease-out;
-    @apply bg-gradient-to-br from-gold-400 to-amber-600 text-black shadow-lg shadow-gold-500/20;
-  }
-  
-  .btn-primary:hover {
-    @apply shadow-gold-500/40 -translate-y-[1px] brightness-110;
-  }
-  
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-300 ease-out;
-    @apply bg-white/[0.03] text-white border border-white/10;
-  }
-  
-  .btn-secondary:hover {
-    @apply bg-white/[0.08] border-gold-500/30;
-  }
-  
-  .btn:disabled {
-    @apply opacity-50 cursor-not-allowed transform-none hover:shadow-none;
-  }
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid #c49746;
+  outline-offset: 2px;
 }
