@@ -7,7 +7,7 @@ Each stage is:
   - Timed for performance monitoring
   - Gracefully degraded (falls back to classical CV if ML model unavailable)
 
-Pipeline order: old_photo_repair → denoise → face_restore → colorize → upscale
+Pipeline order: old_photo_repair → colorize → denoise → face_restore → upscale
 """
 
 from __future__ import annotations
@@ -46,12 +46,16 @@ class RestorationPipeline:
         result = await pipeline.restore(image, options)
     """
 
-    # Canonical stage order — matches PRD Section 6.1
+    # Canonical stage order — colorize runs right after BOPBTL
+    # (least-smoothed point) so DDColor sees real texture/edges.
+    # Denoise runs after colorization to clean up color artifacts
+    # without flattening texture before DDColor sees it.
+    # old_photo_repair → colorize → denoise → face_restore → upscale
     STAGE_ORDER = [
         RestorationStage.OLD_PHOTO_REPAIR,
+        RestorationStage.COLORIZE,
         RestorationStage.DENOISE,
         RestorationStage.FACE_RESTORE,
-        RestorationStage.COLORIZE,
         RestorationStage.UPSCALE,
     ]
 
@@ -105,6 +109,11 @@ class RestorationPipeline:
             enabled.add(RestorationStage.FACE_RESTORE)
         if options.colorize or options.colorization_mode.value != "off":
             enabled.add(RestorationStage.COLORIZE)
+
+        stage_order_str = " → ".join(s.value for s in self.STAGE_ORDER)
+        enabled_str = ", ".join(s.value for s in self.STAGE_ORDER if s in enabled)
+        logger.info(f"Pipeline order: {stage_order_str}")
+        logger.info(f"Enabled stages: {enabled_str}")
 
         for stage_key in self.STAGE_ORDER:
             if stage_key not in enabled:

@@ -76,25 +76,61 @@ def resize_if_needed(
     return resized, scale
 
 
-def is_grayscale_or_sepia(img: np.ndarray, std_threshold: float = 5.0) -> tuple[bool, float]:
+def is_grayscale_or_sepia(
+    img: np.ndarray,
+    corr_threshold: float = 0.92,
+    sample_pixels: int = 50000,
+) -> tuple[bool, float]:
     """
-    Check if an image is grayscale or sepia based on chrominance variance.
-    Returns (is_needs_colorization, chroma_std).
-    Historical sepia photos and faded black-and-white photos have low chrominance variance.
+    Check if an image is grayscale or sepia/duotone using inter-channel
+    correlation.
+
+    In a grayscale or sepia image every pixel's R, G, B values move
+    together — the pixel cloud in RGB space collapses to a line (gray
+    axis or a tinted line for sepia).  The mean pairwise Pearson
+    correlation among channels is therefore very close to 1.0.
+
+    In a genuinely colorful image, different hues cause the channels to
+    diverge across pixels, lowering the correlation.
+
+    This metric is robust to noise level: film grain/staining adds
+    per-pixel variance but does NOT decorrelate the channels, so the
+    same image measured before and after denoising gives essentially
+    the same classification.
+
+    Returns (needs_colorization: bool, mean_channel_corr: float).
     """
     if len(img.shape) == 2 or img.shape[2] == 1:
-        return True, 0.0
-    
-    # Convert to LAB to measure chrominance variance
-    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    
-    # Calculate standard deviation of A and B channels
-    std_a = np.std(lab[:, :, 1])
-    std_b = np.std(lab[:, :, 2])
-    
-    chroma_std = float((std_a + std_b) / 2.0)
-    
-    return chroma_std < std_threshold, chroma_std
+        return True, 1.0
+
+    # Work in RGB (OpenCV loads BGR)
+    rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # Flatten to (N, 3) and optionally subsample for speed
+    pixels = rgb.reshape(-1, 3).astype(np.float64)
+    if len(pixels) > sample_pixels:
+        rng = np.random.default_rng(42)
+        idx = rng.choice(len(pixels), sample_pixels, replace=False)
+        pixels = pixels[idx]
+
+    r, g, b = pixels[:, 0], pixels[:, 1], pixels[:, 2]
+
+    def _pearson(x: np.ndarray, y: np.ndarray) -> float:
+        """Pearson r, guarded against constant channels."""
+        sx, sy = np.std(x), np.std(y)
+        if sx < 1e-6 or sy < 1e-6:
+            # Both channels are nearly constant — treat as perfectly
+            # correlated (uniform-color image → needs colorization).
+            return 1.0
+        return float(np.corrcoef(x, y)[0, 1])
+
+    corr_rg = _pearson(r, g)
+    corr_gb = _pearson(g, b)
+    corr_rb = _pearson(r, b)
+
+    mean_corr = (corr_rg + corr_gb + corr_rb) / 3.0
+
+    return mean_corr >= corr_threshold, round(mean_corr, 4)
 
 
 def detect_faces(img: np.ndarray) -> list[tuple[int, int, int, int]]:

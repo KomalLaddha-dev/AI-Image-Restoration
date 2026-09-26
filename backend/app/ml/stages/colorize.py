@@ -28,7 +28,7 @@ class ColorizeStage:
         self._loaded = False
 
     def load(self) -> None:
-        """Lazy-load the DDColor model."""
+        """Lazy-load the DDColor model. Caches on first call; subsequent calls are no-ops."""
         if self._loaded:
             return
 
@@ -37,11 +37,20 @@ class ColorizeStage:
             from modelscope.utils.constant import Tasks
             logger.info("Initializing ModelScope DDColor pipeline...")
             
-            # This will automatically download weights if missing and use the correct architecture
+            # ModelScope caches weights in ~/.cache/modelscope/ — first call
+            # downloads, subsequent calls load from cache.
             self._model = pipeline(Tasks.image_colorization, model='damo/cv_ddcolor_image-colorization')
             
+            # Move to GPU if available for faster inference
+            settings = get_settings()
+            if settings.device == "cuda" and torch.cuda.is_available():
+                if hasattr(self._model, 'model') and hasattr(self._model.model, 'to'):
+                    self._model.model.to('cuda')
+                    logger.info("DDColor model moved to CUDA")
+            
             self._loaded = True
-            logger.info("DDColor model loaded successfully via ModelScope")
+            device_name = "cuda" if settings.device == "cuda" and torch.cuda.is_available() else "cpu"
+            logger.info(f"DDColor model loaded successfully via ModelScope (device={device_name})")
         except Exception as e:
             import traceback
             trace = traceback.format_exc()
@@ -67,10 +76,14 @@ class ColorizeStage:
             logger.info("Colorize: mode is off, skipping")
             return img
 
-        # Determine if we should colorize
-        needs_color, chroma_std = is_grayscale_or_sepia(img)
+        # Determine if we should colorize — uses inter-channel correlation
+        # (corr ≈ 1.0 = gray/sepia, corr < 0.92 = real color)
+        needs_color, channel_corr = is_grayscale_or_sepia(img)
         
-        logger.info(f"Colorize: mode={colorization_mode}, detected_gray/sepia={needs_color}, chroma_std={chroma_std:.2f}")
+        logger.info(
+            f"Colorize: mode={colorization_mode}, channel_corr={channel_corr:.4f}, "
+            f"detected={'gray/sepia' if needs_color else 'color'}"
+        )
 
         if colorization_mode == "auto" and not needs_color:
             elapsed = (time.perf_counter() - start) * 1000

@@ -51,5 +51,10 @@ static/uploads/
 classifier-training/dataset/
 data/sample_images/
 
+# Large model checkpoints (download separately)
+backend/global_checkpoints.zip
+backend/Bringing-Old-Photos-Back-to-Life/
+*.zip
+
 # Jupyter
 .ipynb_checkpoints/
