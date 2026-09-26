@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import UploadZone from '../components/UploadZone';
 import MonumentCard from '../components/MonumentCard';
 import { identifyAndInform } from '../utils/api';
+import { motion } from 'motion/react';
+import { 
+  ArrowCounterClockwise, 
+  ArrowRight,
+  Scroll,
+  WarningCircle,
+  Question
+} from '@phosphor-icons/react';
 
 export default function IdentifyPage() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,10 +42,10 @@ export default function IdentifyPage() {
   };
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1>Identify a Monument</h1>
-        <p>Upload a photo of a monument — AI will identify it and show you its history.</p>
+    <div className="pt-28 pb-20 px-6 max-w-4xl mx-auto min-h-screen">
+      <div className="mb-12 text-center md:text-left">
+        <h1 className="font-serif text-3xl md:text-5xl font-bold mb-4 text-white">Identify a Monument</h1>
+        <p className="text-dark-300 text-lg">Upload a photo of a monument — AI will identify it and show you its history.</p>
       </div>
 
       {!previewUrl ? (
@@ -46,35 +54,21 @@ export default function IdentifyPage() {
           label="Upload a Monument Photo"
         />
       ) : (
-        <div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           {/* Preview */}
-          <div className="glass-card" style={{
-            padding: 'var(--space-4)',
-            marginBottom: 'var(--space-6)',
-            textAlign: 'center',
-          }}>
+          <div className="glass-card p-4 mb-8">
             <img
               src={previewUrl}
               alt="Uploaded monument"
-              style={{
-                maxHeight: '350px',
-                borderRadius: 'var(--radius-lg)',
-                margin: '0 auto',
-              }}
+              className="max-h-[400px] w-auto mx-auto rounded-lg object-contain"
             />
           </div>
 
           {/* Processing */}
           {isProcessing && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 'var(--space-4)',
-              padding: 'var(--space-8)',
-            }}>
-              <div className="spinner" />
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+            <div className="flex flex-col items-center gap-4 py-12">
+              <div className="w-8 h-8 rounded-full border-2 border-gold-500/30 border-t-gold-500 animate-spin" />
+              <p className="text-dark-300 text-sm">
                 Analyzing image... identifying monument...
               </p>
             </div>
@@ -82,57 +76,44 @@ export default function IdentifyPage() {
 
           {/* Error */}
           {error && (
-            <div style={{
-              padding: 'var(--space-4)',
-              background: 'rgba(248, 113, 113, 0.1)',
-              border: '1px solid rgba(248, 113, 113, 0.3)',
-              borderRadius: 'var(--radius-lg)',
-              color: 'var(--color-error)',
-              fontSize: 'var(--text-sm)',
-              marginBottom: 'var(--space-6)',
-            }}>
-              ⚠️ {error}
+            <div className="flex items-center gap-3 p-4 mb-8 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              <WarningCircle weight="fill" className="text-xl shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
           {/* Result */}
           {result && (
-            <div>
+            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
               {result.identification?.recognized ? (
                 <>
                   <MonumentCard data={result.identification} />
 
                   {/* Quick History Summary */}
                   {result.history && (
-                    <div className="glass-card" style={{ padding: 'var(--space-6)', marginTop: 'var(--space-6)' }}>
-                      <h3 style={{
-                        fontFamily: 'var(--font-serif)',
-                        fontSize: 'var(--text-xl)',
-                        marginBottom: 'var(--space-4)',
-                        color: 'var(--color-accent-gold)',
-                      }}>
-                        📜 Historical Summary
+                    <div className="glass-card p-8 mt-6">
+                      <h3 className="font-serif text-2xl font-bold mb-4 text-gold-500 flex items-center gap-2">
+                        <Scroll weight="duotone" />
+                        Historical Summary
                       </h3>
-                      <p style={{
-                        fontSize: 'var(--text-sm)',
-                        lineHeight: 1.8,
-                        color: 'var(--color-text-secondary)',
-                      }}>
+                      <p className="text-sm leading-relaxed text-dark-300 mb-6">
                         {result.history.summary}
                       </p>
 
                       {result.history.sources?.length > 0 && (
-                        <div style={{ marginTop: 'var(--space-4)' }}>
-                          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>
-                            Sources:
+                        <div className="mt-4 pt-4 border-t border-white/5">
+                          <p className="text-xs text-dark-400 mb-3 uppercase tracking-wider font-semibold">
+                            Sources
                           </p>
-                          <ul className="sources-list">
+                          <ul className="space-y-2">
                             {result.history.sources.map((s, i) => (
-                              <li key={i}>
+                              <li key={i} className="text-sm">
                                 {s.url ? (
-                                  <a href={s.url} target="_blank" rel="noopener noreferrer">{s.name}</a>
+                                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-gold-500 hover:text-gold-400 transition-colors">
+                                    {s.name}
+                                  </a>
                                 ) : (
-                                  s.name
+                                  <span className="text-dark-300">{s.name}</span>
                                 )}
                               </li>
                             ))}
@@ -142,38 +123,35 @@ export default function IdentifyPage() {
 
                       <button
                         onClick={() => navigate(`/history/${result.identification.monument_id}`)}
-                        className="btn btn-primary"
-                        style={{ marginTop: 'var(--space-6)' }}
+                        className="btn-primary mt-8 w-full sm:w-auto"
                       >
-                        View Full History →
+                        View Full History <ArrowRight weight="bold" />
                       </button>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="glass-card" style={{
-                  padding: 'var(--space-8)',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ fontSize: '3rem', marginBottom: 'var(--space-4)' }}>🤔</div>
-                  <h3 style={{ marginBottom: 'var(--space-2)' }}>Not Recognized</h3>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+                <div className="glass-card p-12 text-center flex flex-col items-center">
+                  <Question weight="duotone" className="text-6xl text-gold-500/50 mb-4" />
+                  <h3 className="text-2xl font-bold mb-2 text-white">Not Recognized</h3>
+                  <p className="text-dark-300 text-sm">
                     {result.identification?.message || "This monument isn't in our database yet."}
                   </p>
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
 
           {/* Reset button */}
           {!isProcessing && (
-            <div style={{ textAlign: 'center', marginTop: 'var(--space-6)' }}>
-              <button onClick={handleReset} className="btn btn-secondary">
-                🔄 Try Another Photo
+            <div className="text-center mt-8">
+              <button onClick={handleReset} className="btn-secondary w-full sm:w-auto">
+                <ArrowCounterClockwise weight="bold" />
+                Try Another Photo
               </button>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );

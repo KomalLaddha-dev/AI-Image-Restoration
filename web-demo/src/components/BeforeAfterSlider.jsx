@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
+import { ArrowsLeftRight } from '@phosphor-icons/react';
 
 export default function BeforeAfterSlider({ beforeSrc, afterSrc }) {
   const containerRef = useRef(null);
@@ -46,60 +47,51 @@ export default function BeforeAfterSlider({ beforeSrc, afterSrc }) {
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  // To fix image resizing, we need the natural aspect ratio of the image.
+  // Using a container approach where both images overlay perfectly.
+
   return (
     <div
       ref={containerRef}
-      className="before-after-container"
+      className="relative w-full max-w-4xl mx-auto rounded-2xl overflow-hidden cursor-col-resize select-none shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 group"
       onMouseDown={handleMouseDown}
       onTouchMove={handleTouchMove}
       onTouchStart={() => setIsDragging(true)}
       onTouchEnd={() => setIsDragging(false)}
-      style={{ aspectRatio: 'auto' }}
     >
-      {/* After image (full width, background) */}
-      <img src={afterSrc} alt="Restored" style={{ width: '100%' }} />
+      {/* After image (background) */}
+      <img src={afterSrc} alt="Restored" className="w-full h-auto block pointer-events-none" />
 
       {/* Before image (clipped) */}
       <div
-        className="before-image-wrapper"
+        className="absolute top-0 left-0 h-full overflow-hidden"
         style={{ width: `${position}%` }}
       >
         <img
           src={beforeSrc}
           alt="Original"
-          style={{
-            width: `${containerRef.current ? containerRef.current.offsetWidth : 800}px`,
-            maxWidth: 'none',
-          }}
+          className="absolute top-0 left-0 h-full max-w-none pointer-events-none"
+          style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '100vw' }}
         />
       </div>
 
       {/* Slider handle */}
-      <div className="slider-handle" style={{ left: `${position}%` }}>
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '36px',
-          height: '36px',
-          borderRadius: '50%',
-          background: 'var(--color-accent-gold)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '14px',
-          color: '#0a0a0f',
-          fontWeight: 'bold',
-          boxShadow: '0 0 16px rgba(212, 168, 83, 0.6)',
-        }}>
-          ⟷
+      <div 
+        className="absolute top-0 bottom-0 w-1 bg-gold-500 shadow-[0_0_12px_rgba(212,168,83,0.8)] z-10" 
+        style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
+      >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-gold-500 rounded-full flex items-center justify-center text-black shadow-[0_0_20px_rgba(212,168,83,0.8)] transition-transform duration-200">
+          <ArrowsLeftRight weight="bold" className="text-xl" />
         </div>
       </div>
 
       {/* Labels */}
-      <span className="slider-label before">Before</span>
-      <span className="slider-label after">After</span>
+      <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-md text-xs font-semibold uppercase tracking-wider text-white/70">
+        Before
+      </div>
+      <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-md text-xs font-semibold uppercase tracking-wider text-gold-400">
+        After
+      </div>
     </div>
   );
 }
