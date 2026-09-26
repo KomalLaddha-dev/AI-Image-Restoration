@@ -41,6 +41,8 @@ export default function IdentifyPage() {
     }
   };
 
+  const backgroundImageUrl = file ? URL.createObjectURL(file) : null;
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -48,6 +50,25 @@ export default function IdentifyPage() {
       exit={{ opacity: 0 }}
       className="w-full min-h-screen py-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col relative z-10"
     >
+      {/* Dynamic Background */}
+      <AnimatePresence>
+        {backgroundImageUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="fixed inset-0 z-[-1]"
+          >
+            <div className="absolute inset-0 bg-bg-primary/80 z-10" />
+            <img 
+              src={backgroundImageUrl} 
+              alt="Background" 
+              className="w-full h-full object-cover opacity-30 blur-xl"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="text-center mb-16">
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}

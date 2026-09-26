@@ -76,17 +76,25 @@ export default function UploadZone({ onFileSelect, file, accept = "image/jpeg, i
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center z-20 border border-gold-500/30 rounded-3xl"
+          className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-20 border border-gold-500/30 rounded-3xl overflow-hidden"
         >
-          <ImageIcon weight="duotone" className="text-5xl text-gold-500 mb-4" />
-          <p className="text-lg font-bold text-white mb-1 truncate max-w-[80%]">{file.name}</p>
-          <p className="text-sm text-gold-400 uppercase tracking-widest font-semibold">Ready to process</p>
-          <button 
-            className="mt-6 text-xs text-dark-300 hover:text-white uppercase tracking-widest transition-colors duration-300 border-b border-dark-300 hover:border-white pb-1"
-            onClick={(e) => { e.stopPropagation(); onFileSelect(null); }}
-          >
-            Choose a different file
-          </button>
+          <div 
+            className="absolute inset-0 opacity-40 mix-blend-screen bg-cover bg-center"
+            style={{ backgroundImage: `url(${URL.createObjectURL(file)})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+          
+          <div className="relative z-30 flex flex-col items-center">
+            <ImageIcon weight="duotone" className="text-5xl text-gold-500 mb-4 drop-shadow-lg" />
+            <p className="text-lg font-bold text-white mb-1 truncate max-w-[80%] drop-shadow-md">{file.name}</p>
+            <p className="text-sm text-gold-400 uppercase tracking-widest font-semibold drop-shadow-md">Ready to process</p>
+            <button 
+              className="mt-6 text-xs text-white/70 hover:text-white uppercase tracking-widest transition-colors duration-300 border-b border-white/30 hover:border-white pb-1"
+              onClick={(e) => { e.stopPropagation(); onFileSelect(null); }}
+            >
+              Choose a different file
+            </button>
+          </div>
         </motion.div>
       )}
     </motion.div>

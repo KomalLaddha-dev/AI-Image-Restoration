@@ -15,8 +15,7 @@ export default function RestorePage() {
   const [options, setOptions] = useState({
     denoise: true,
     colorize: false,
-    upscale: false,
-    scratch_repair: false,
+    face_restore: false,
   });
 
   const handleToggle = (key) => {
@@ -96,13 +95,6 @@ export default function RestorePage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                   <ToggleOption 
-                    icon={<CameraRotate weight="duotone" />}
-                    title="Denoise & Deblur"
-                    desc="Removes film grain, compression artifacts, and motion blur using NAFNet."
-                    active={options.denoise}
-                    onClick={() => handleToggle('denoise')}
-                  />
-                  <ToggleOption 
                     icon={<DropHalfBottom weight="duotone" />}
                     title="Colorize (DDColor)"
                     desc="Injects historically accurate color into grayscale or sepia photographs."
@@ -110,18 +102,11 @@ export default function RestorePage() {
                     onClick={() => handleToggle('colorize')}
                   />
                   <ToggleOption 
-                    icon={<ImageSquare weight="duotone" />}
-                    title="Upscale (Real-ESRGAN)"
-                    desc="Increases resolution and reconstructs fine details like textures and edges."
-                    active={options.upscale}
-                    onClick={() => handleToggle('upscale')}
-                  />
-                  <ToggleOption 
-                    icon={<Sparkle weight="duotone" />}
-                    title="Scratch Repair"
-                    desc="Fills in missing pixels from physical damage (tears, dust, scratches)."
-                    active={options.scratch_repair}
-                    onClick={() => handleToggle('scratch_repair')}
+                    icon={<CameraRotate weight="duotone" />}
+                    title="Enhance Faces (GFPGAN)"
+                    desc="Recovers fine details in faces, removing blur and compression artifacts."
+                    active={options.face_restore}
+                    onClick={() => handleToggle('face_restore')}
                   />
                 </div>
                 

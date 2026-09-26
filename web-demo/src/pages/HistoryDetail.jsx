@@ -69,14 +69,14 @@ export default function HistoryDetail() {
     >
       {/* Hero Header with Parallax */}
       <div className="relative w-full h-[70vh] flex flex-col justify-end overflow-hidden">
-        {data.image_url && (
+        {data.related_images && data.related_images.length > 0 && (
           <motion.div 
             style={{ y: heroY }}
             className="absolute inset-0 z-0"
           >
             <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/60 to-transparent z-10" />
             <img 
-              src={data.image_url} 
+              src={data.related_images[0].url || data.related_images[0]} 
               alt={data.name} 
               className="w-full h-full object-cover object-center opacity-40 mix-blend-luminosity"
             />
@@ -96,8 +96,8 @@ export default function HistoryDetail() {
             <h1 className="font-serif text-5xl md:text-8xl font-bold text-white mb-6 tracking-tight leading-[1.1]">{data.name}</h1>
             
             <div className="flex flex-wrap items-center gap-6 text-gold-400 font-medium tracking-wide uppercase text-sm">
-              <span className="flex items-center gap-2"><MapPin weight="fill" /> {data.location}</span>
-              <span className="flex items-center gap-2"><Clock weight="fill" /> {data.built_year}</span>
+              {data.location && <span className="flex items-center gap-2"><MapPin weight="fill" /> {data.location}</span>}
+              {data.era && <span className="flex items-center gap-2"><Clock weight="fill" /> {data.era}</span>}
             </div>
           </motion.div>
         </div>
@@ -114,7 +114,7 @@ export default function HistoryDetail() {
         >
           {/* Drop cap for first paragraph */}
           <p className="first-letter:font-serif first-letter:float-left first-letter:text-7xl first-letter:pr-4 first-letter:text-gold-500 first-letter:font-bold first-line:uppercase first-line:tracking-widest">
-            {data.description}
+            {data.summary}
           </p>
         </motion.div>
 
@@ -146,11 +146,8 @@ export default function HistoryDetail() {
                   <div className="text-gold-400 font-bold tracking-widest text-sm mb-3 bg-white/5 inline-block px-3 py-1 rounded-md">
                     {event.year}
                   </div>
-                  <h4 className="font-serif text-2xl font-bold text-white mb-3 group-hover:text-gold-200 transition-colors">
-                    {event.title}
-                  </h4>
-                  <p className="text-dark-300 font-light leading-relaxed max-w-2xl">
-                    {event.description}
+                  <p className="text-dark-200 font-light leading-relaxed max-w-2xl text-lg">
+                    {event.event}
                   </p>
                 </motion.div>
               ))}
