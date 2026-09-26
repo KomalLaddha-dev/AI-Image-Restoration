@@ -1,33 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getHistory } from '../utils/api';
-import { motion } from 'motion/react';
-import { 
-  ArrowLeft,
-  MapPin,
-  Clock,
-  Hammer,
-  Bank,
-  Medal,
-  Scroll,
-  Timer,
-  BookBookmark,
-  LinkSimple
-} from '@phosphor-icons/react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowLeft, Clock, MapPin, Info, ArrowUpRight } from '@phosphor-icons/react';
+import { getMonumentHistory } from '../api/client';
 
 export default function HistoryDetail() {
   const { id } = useParams();
-  const [history, setHistory] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
+
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const data = await getHistory(id);
-        setHistory(data);
+        setLoading(true);
+        const result = await getMonumentHistory(id);
+        setData(result);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || 'Failed to load monument history.');
       } finally {
         setLoading(false);
       }
@@ -37,133 +36,147 @@ export default function HistoryDetail() {
 
   if (loading) {
     return (
-      <div className="pt-32 pb-20 px-6 min-h-screen flex justify-center items-center">
-        <div className="w-10 h-10 rounded-full border-2 border-gold-500/30 border-t-gold-500 animate-spin" />
+      <div className="w-full min-h-screen flex items-center justify-center relative z-10">
+        <div className="w-12 h-12 border-2 border-gold-500/20 border-t-gold-500 rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (error) {
+  if (error || !data) {
     return (
-      <div className="pt-32 pb-20 px-6 min-h-screen">
-        <div className="p-8 text-center text-red-400 bg-red-500/10 border border-red-500/20 rounded-2xl max-w-2xl mx-auto">
-          <p className="mb-4">Failed to load history: {error}</p>
-          <Link to="/identify" className="btn-secondary inline-flex">
-            <ArrowLeft weight="bold" /> Back to Identify
+      <div className="w-full min-h-screen flex items-center justify-center px-6 relative z-10">
+        <div className="glass-card p-10 text-center max-w-lg">
+          <Info weight="duotone" className="text-5xl text-gold-500 mx-auto mb-6" />
+          <h2 className="font-serif text-2xl font-bold text-white mb-4">Record Not Found</h2>
+          <p className="text-dark-300 mb-8 font-light leading-relaxed">
+            {error || "The historical record for this monument could not be retrieved from the archives."}
+          </p>
+          <Link to="/identify" className="inline-flex items-center gap-2 text-gold-400 hover:text-gold-300 font-bold tracking-widest uppercase text-sm border-b border-gold-500/30 hover:border-gold-400 pb-1 transition-colors">
+            <ArrowLeft weight="bold" /> Return to Scanner
           </Link>
         </div>
       </div>
     );
   }
 
-  if (!history) return null;
-
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 15 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ duration: 0.5 }}
-      className="pt-32 pb-20 px-6 max-w-4xl mx-auto min-h-screen"
+      ref={containerRef}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="w-full relative z-10"
     >
-      {/* Header */}
-      <div className="mb-12 relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gold-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-
-        <Link to="/identify" className="inline-flex items-center gap-2 text-sm text-dark-300 hover:text-gold-500 transition-colors mb-6">
-          <ArrowLeft weight="bold" /> Back to Identify
-        </Link>
-
-        <h1 className="font-serif text-4xl md:text-6xl font-bold text-gradient leading-tight mb-6">
-          {history.name}
-        </h1>
-
-        <div className="flex flex-wrap gap-4 text-sm text-dark-300">
-          {history.location && (
-            <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5">
-              <MapPin weight="duotone" className="text-gold-500 text-lg" />
-              {history.location}
-            </span>
-          )}
-          {history.era && (
-            <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5">
-              <Clock weight="duotone" className="text-gold-500 text-lg" />
-              {history.era}
-            </span>
-          )}
-          {history.builder && (
-            <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5">
-              <Hammer weight="duotone" className="text-gold-500 text-lg" />
-              {history.builder}
-            </span>
-          )}
-          {history.architectural_style && (
-            <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5">
-              <Bank weight="duotone" className="text-gold-500 text-lg" />
-              {history.architectural_style}
-            </span>
-          )}
-          {history.unesco_status && (
-            <span className="flex items-center gap-2 bg-gold-500/10 text-gold-400 px-4 py-2 rounded-lg border border-gold-500/20 font-medium">
-              <Medal weight="duotone" className="text-lg" />
-              {history.unesco_status}
-            </span>
-          )}
+      {/* Hero Header with Parallax */}
+      <div className="relative w-full h-[70vh] flex flex-col justify-end overflow-hidden">
+        {data.image_url && (
+          <motion.div 
+            style={{ y: heroY }}
+            className="absolute inset-0 z-0"
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/60 to-transparent z-10" />
+            <img 
+              src={data.image_url} 
+              alt={data.name} 
+              className="w-full h-full object-cover object-center opacity-40 mix-blend-luminosity"
+            />
+          </motion.div>
+        )}
+        
+        <div className="relative z-20 w-full max-w-4xl mx-auto px-6 md:px-12 pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <Link to="/identify" className="inline-flex items-center gap-2 text-dark-300 hover:text-white text-xs font-bold tracking-widest uppercase mb-8 transition-colors">
+              <ArrowLeft weight="bold" /> Back
+            </Link>
+            
+            <h1 className="font-serif text-5xl md:text-8xl font-bold text-white mb-6 tracking-tight leading-[1.1]">{data.name}</h1>
+            
+            <div className="flex flex-wrap items-center gap-6 text-gold-400 font-medium tracking-wide uppercase text-sm">
+              <span className="flex items-center gap-2"><MapPin weight="fill" /> {data.location}</span>
+              <span className="flex items-center gap-2"><Clock weight="fill" /> {data.built_year}</span>
+            </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="glass-card p-8 md:p-10 mb-8">
-        <h2 className="font-serif text-2xl font-bold mb-6 text-gold-500 flex items-center gap-3">
-          <Scroll weight="duotone" className="text-3xl" />
-          Historical Summary
-        </h2>
-        <div className="text-base md:text-lg leading-relaxed text-dark-200 whitespace-pre-wrap">
-          {history.summary}
-        </div>
-      </div>
+      {/* Editorial Content */}
+      <div className="w-full max-w-4xl mx-auto px-6 md:px-12 py-20 pb-32">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8 }}
+          className="prose prose-invert prose-lg max-w-none prose-headings:font-serif prose-headings:font-bold prose-p:font-light prose-p:text-dark-200 prose-p:leading-relaxed prose-a:text-gold-400"
+        >
+          {/* Drop cap for first paragraph */}
+          <p className="first-letter:font-serif first-letter:float-left first-letter:text-7xl first-letter:pr-4 first-letter:text-gold-500 first-letter:font-bold first-line:uppercase first-line:tracking-widest">
+            {data.description}
+          </p>
+        </motion.div>
 
-      {/* Timeline */}
-      {history.timeline?.length > 0 && (
-        <div className="glass-card p-8 md:p-10 mb-8">
-          <h2 className="font-serif text-2xl font-bold mb-8 text-gold-500 flex items-center gap-3">
-            <Timer weight="duotone" className="text-3xl" />
-            Timeline
-          </h2>
-          <div className="relative pl-8 border-l border-gold-500/30 space-y-8">
-            {history.timeline.map((event, i) => (
-              <div key={i} className="relative">
-                <div className="absolute -left-[39px] top-1.5 w-4 h-4 bg-gold-500 rounded-full shadow-[0_0_10px_rgba(212,168,83,0.5)] border-4 border-[#111118]" />
-                <div className="font-serif text-lg font-bold text-gold-400 mb-2">{event.year}</div>
-                <div className="text-sm md:text-base text-dark-300 leading-relaxed">{event.event}</div>
-              </div>
-            ))}
+        {data.timeline && data.timeline.length > 0 && (
+          <div className="mt-32">
+            <motion.h3 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="font-serif text-3xl font-bold text-white mb-16 flex items-center gap-4"
+            >
+              <div className="h-[1px] flex-grow bg-white/10" />
+              Historical Timeline
+              <div className="h-[1px] flex-grow bg-white/10" />
+            </motion.h3>
+
+            <div className="relative border-l border-gold-500/20 ml-4 md:ml-8 space-y-16">
+              {data.timeline.map((event, idx) => (
+                <motion.div 
+                  key={idx} 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, delay: idx * 0.1 }}
+                  className="relative pl-10 md:pl-16 group"
+                >
+                  <div className="absolute -left-[5px] top-1.5 w-[9px] h-[9px] rounded-full bg-gold-500 shadow-[0_0_10px_rgba(212,168,83,0.8)] group-hover:scale-150 transition-transform duration-300" />
+                  
+                  <div className="text-gold-400 font-bold tracking-widest text-sm mb-3 bg-white/5 inline-block px-3 py-1 rounded-md">
+                    {event.year}
+                  </div>
+                  <h4 className="font-serif text-2xl font-bold text-white mb-3 group-hover:text-gold-200 transition-colors">
+                    {event.title}
+                  </h4>
+                  <p className="text-dark-300 font-light leading-relaxed max-w-2xl">
+                    {event.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Sources */}
-      {history.sources?.length > 0 && (
-        <div className="glass-card p-8 md:p-10">
-          <h2 className="font-serif text-2xl font-bold mb-6 text-gold-500 flex items-center gap-3">
-            <BookBookmark weight="duotone" className="text-3xl" />
-            Sources
-          </h2>
-          <ul className="space-y-4">
-            {history.sources.map((source, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm md:text-base border-b border-white/5 pb-4 last:border-0 last:pb-0">
-                <LinkSimple weight="bold" className="text-gold-500 text-xl shrink-0 mt-0.5" />
-                {source.url ? (
-                  <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-white hover:text-gold-400 transition-colors">
-                    {source.name}
-                  </a>
-                ) : (
-                  <span className="text-dark-300">{source.name}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {data.source_url && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="mt-32 pt-12 border-t border-white/10"
+          >
+            <a 
+              href={data.source_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 text-gold-500 hover:text-gold-400 transition-colors font-bold tracking-widest uppercase text-sm group"
+            >
+              View Primary Source Material 
+              <ArrowUpRight weight="bold" className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </a>
+          </motion.div>
+        )}
+      </div>
     </motion.div>
   );
 }

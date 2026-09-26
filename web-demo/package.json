@@ -10,14 +10,22 @@
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@studio-freight/react-lenis": "^0.0.47",
     "@tailwindcss/vite": "^4.3.3",
     "clsx": "^2.1.1",
+    "framer-motion": "^13.4.4",
+    "gsap": "^3.15.0",
+    "lucide-react": "^1.48.0",
     "motion": "^13.4.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-dropzone": "^20.1.2",
     "react-router-dom": "^6.28.0",
     "tailwind-merge": "^3.7.0",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
