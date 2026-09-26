@@ -97,8 +97,8 @@ class ColorizeStage:
             try:
                 output = self._run_ddcolor(img)
                 elapsed = (time.perf_counter() - start) * 1000
-                device_name = "cuda" if "cuda" in str(get_settings().device) else "cpu"
-                logger.info(f"Colorize (DDColor): executed=True, device={device_name}, completed in {elapsed:.0f}ms")
+                logger.info(f"Colorize: mode={colorization_mode}")
+                logger.info("DDColor: EXECUTED")
                 return output
             except Exception as e:
                 logger.error(f"DDColor inference failed: {e}")

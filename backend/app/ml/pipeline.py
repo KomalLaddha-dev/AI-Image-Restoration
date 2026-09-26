@@ -107,7 +107,7 @@ class RestorationPipeline:
             enabled.add(RestorationStage.DENOISE)
         if options.face_restore:
             enabled.add(RestorationStage.FACE_RESTORE)
-        if options.colorize or options.colorization_mode.value != "off":
+        if options.colorize:
             enabled.add(RestorationStage.COLORIZE)
 
         stage_order_str = " → ".join(s.value for s in self.STAGE_ORDER)
@@ -117,7 +117,12 @@ class RestorationPipeline:
 
         for stage_key in self.STAGE_ORDER:
             if stage_key not in enabled:
-                logger.info(f"{stage_key.value} stage: disabled by options, skipping")
+                if stage_key == RestorationStage.COLORIZE:
+                    logger.info("Colorization requested: false")
+                    logger.info("Colorize: SKIPPED — disabled by user")
+                else:
+                    logger.info(f"{stage_key.value} stage: disabled by options, skipping")
+                    
                 stage_results.append(
                     StageResult(stage=stage_key.value, processing_time_ms=0, applied=False)
                 )
@@ -131,10 +136,8 @@ class RestorationPipeline:
                 h_in, w_in = current.shape[:2]
                 
                 if stage_key == RestorationStage.COLORIZE:
+                    logger.info("Colorization requested: true")
                     mode = options.colorization_mode.value
-                    # Legacy override
-                    if options.colorize and mode == "off":
-                        mode = "force"
                     current = await stage.process(current, colorization_mode=mode)
                 else:
                     current = await stage.process(current)

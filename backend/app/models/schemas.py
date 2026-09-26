@@ -44,7 +44,7 @@ class RestorationStage(str, Enum):
 class RestoreOptions(BaseModel):
     """Options sent with a restoration request."""
     face_restore: bool = Field(default=False, description="Enable face restoration (GFPGAN)")
-    colorize: bool = Field(default=False, description="Legacy parameter. Use colorization_mode instead.")
+    colorize: bool = Field(default=False, description="Enable colorization (DDColor)")
     colorization_mode: ColorizationMode = Field(default=ColorizationMode.AUTO, description="auto, force, or off")
     denoise: bool = Field(default=False, description="Enable denoising/deblurring (NAFNet)")
     mode: RestorationMode = Field(
