@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowLeft, Clock, MapPin, Info, ArrowUpRight } from '@phosphor-icons/react';
-import { getMonumentHistory } from '../api/client';
+import { getHistory } from '../utils/api';
 
 export default function HistoryDetail() {
   const { id } = useParams();
@@ -23,7 +23,7 @@ export default function HistoryDetail() {
     async function fetchHistory() {
       try {
         setLoading(true);
-        const result = await getMonumentHistory(id);
+        const result = await getHistory(id);
         setData(result);
       } catch (err) {
         setError(err.message || 'Failed to load monument history.');

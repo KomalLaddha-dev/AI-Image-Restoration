@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import UploadZone from '../components/UploadZone';
 import BeforeAfterSlider from '../components/BeforeAfterSlider';
 import ProgressBar from '../components/ProgressBar';
-import { restoreImage } from '../api/client';
+import { restoreSync } from '../utils/api';
 import { MagicWand, ImageSquare, DownloadSimple, Faders, Sparkle, CameraRotate, DropHalfBottom } from '@phosphor-icons/react';
 
 export default function RestorePage() {
@@ -36,9 +36,8 @@ export default function RestorePage() {
     }, 500);
 
     try {
-      const restoredBlob = await restoreImage(file, options);
-      const url = URL.createObjectURL(restoredBlob);
-      setResult(url);
+      const resultData = await restoreSync(file, options);
+      setResult(resultData.url);
       setProgress(100);
     } catch (err) {
       setError(err.message || 'An error occurred during restoration');

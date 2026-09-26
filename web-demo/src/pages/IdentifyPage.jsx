@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import UploadZone from '../components/UploadZone';
 import ProgressBar from '../components/ProgressBar';
-import { identifyMonument } from '../api/client';
+import { identifyMonument } from '../utils/api';
 import { Target, WarningCircle, Sparkle } from '@phosphor-icons/react';
 
 export default function IdentifyPage() {
@@ -24,17 +24,13 @@ export default function IdentifyPage() {
     }, 400);
 
     try {
-      // Mock API call since actual endpoint might not be ready
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      // const result = await identifyMonument(file);
-      // const id = result.id;
+      const result = await identifyMonument(file);
+      const id = result.monument_id || result.id;
       
-      // Simulate successful identification
-      const mockId = 'taj-mahal';
       setProgress(100);
       
       setTimeout(() => {
-        navigate(`/history/${mockId}`);
+        navigate(`/history/${id}`);
       }, 500);
       
     } catch (err) {
