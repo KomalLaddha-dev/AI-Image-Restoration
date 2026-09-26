@@ -10,6 +10,7 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import torch
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -61,6 +62,14 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     _start_time = time.time()
     logger.info(f"🏛️ Heritage Restore starting (env={settings.app_env})")
+    
+    # Check CUDA
+    cuda_available = torch.cuda.is_available()
+    logger.info(f"CUDA available: {cuda_available}")
+    if cuda_available:
+        logger.info(f"GPU name: {torch.cuda.get_device_name(0)}")
+        if hasattr(torch.version, 'cuda'):
+            logger.info(f"torch.version.cuda: {torch.version.cuda}")
 
     # 1. Initialize restoration pipeline
     _pipeline = RestorationPipeline()

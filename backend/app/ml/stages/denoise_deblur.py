@@ -31,13 +31,12 @@ class DenoiseDeblurStage:
             return
 
         settings = get_settings()
-        model_path = Path(settings.model_dir) / "NAFNet-REDS-width64.pth"
+        model_path = Path(settings.model_dir) / "NAFNet-SIDD-width64.pth"
 
         try:
             if model_path.exists():
-                # NAFNet architecture — loading via torchscript or direct state dict
-                # For simplicity, we use the basicsr framework if available
-                from basicsr.archs.nafnet_arch import NAFNet as NAFNetArch
+                # Load local NAFNet architecture file
+                from app.ml.stages.nafnet_arch import NAFNet as NAFNetArch
 
                 self._model = NAFNetArch(
                     img_channel=3,
@@ -82,12 +81,9 @@ class DenoiseDeblurStage:
                 return output
             except Exception as e:
                 logger.error(f"NAFNet inference failed: {e}")
-
-        # Fallback: OpenCV Non-Local Means Denoising
-        output = self._fallback_denoise(img)
-        elapsed = (time.perf_counter() - start) * 1000
-        logger.info(f"Denoise (OpenCV NLMeans): completed in {elapsed:.0f}ms")
-        return output
+                raise RuntimeError("NAFNet failed and OpenCV fallback is disabled.") from e
+        else:
+            raise RuntimeError("NAFNet model is not available.")
 
     def _run_nafnet(self, img: np.ndarray) -> np.ndarray:
         """Run NAFNet inference."""
@@ -119,20 +115,6 @@ class DenoiseDeblurStage:
 
         return output
 
-    def _fallback_denoise(self, img: np.ndarray) -> np.ndarray:
-        """
-        OpenCV Non-Local Means Denoising — a solid classical denoiser.
-        Slower than NAFNet but requires no model weights.
-        """
-        # Use the color version for BGR images
-        return cv2.fastNlMeansDenoisingColored(
-            img,
-            None,
-            h=10,       # Filter strength
-            hColor=10,  # Color component filter strength
-            templateWindowSize=7,
-            searchWindowSize=21,
-        )
 
     def unload(self) -> None:
         """Free model memory."""

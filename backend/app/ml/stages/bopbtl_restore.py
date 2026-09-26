@@ -8,6 +8,7 @@ import numpy as np
 from loguru import logger
 import tempfile
 import sys
+import torch
 
 from app.config import get_settings
 
@@ -50,7 +51,7 @@ class BOPBTLStage:
     def is_available(self) -> bool:
         return self._loaded
 
-    async def process(self, img: np.ndarray) -> np.ndarray:
+    async def process(self, img: np.ndarray, max_bopbtl_size: int = 768, use_hr_mode: bool = False) -> np.ndarray:
         """
         Run the Microsoft BOPBTL Global restoration stage via subprocess.
         """
@@ -59,18 +60,26 @@ class BOPBTLStage:
         if not self.is_available():
             self.load()
 
-        # BOPBTL is extremely memory intensive on CPU for large images.
-        # Downscale if the longest side exceeds 800 pixels.
-        h, w = img.shape[:2]
-        max_dim = 800
-        if max(h, w) > max_dim:
-            scale = max_dim / max(h, w)
-            new_w, new_h = int(w * scale), int(h * scale)
-            logger.info(f"BOPBTL: Resizing image from {w}x{h} to {new_w}x{new_h} to avoid OOM")
-            img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
-
         settings = get_settings()
-        gpu_id = "0" if settings.device == "cuda" else "-1"
+        cuda_available = torch.cuda.is_available()
+        
+        if settings.device == "cuda" and not cuda_available:
+            raise RuntimeError("GPU mode requested for BOPBTL but CUDA is not available!")
+            
+        gpu_id = "0" if cuda_available and settings.device == "cuda" else "-1"
+        device_str = "CPU" if gpu_id == "-1" else "GPU 0"
+        gpu_name = torch.cuda.get_device_name(0) if gpu_id != "-1" else "N/A"
+        
+        h_orig, w_orig = img.shape[:2]
+        
+        from app.utils.image_utils import resize_if_needed
+        img, scale = resize_if_needed(img, max_side=max_bopbtl_size)
+        h_in, w_in = img.shape[:2]
+        if scale < 1.0:
+            logger.info(f"BOPBTL: Downscaled input from {w_orig}x{h_orig} to {w_in}x{h_in} (max_side={max_bopbtl_size})")
+
+        # Config option to test --HR true vs false
+        hr_flag = "--HR" if use_hr_mode else ""
 
         # Create temporary directories for processing
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -90,7 +99,7 @@ class BOPBTLStage:
             python_exe = sys.executable if sys.executable else "python"
 
             # 1. Detection (find scratches)
-            logger.info("BOPBTL: Running scratch detection...")
+            logger.info(f"BOPBTL: Running scratch detection on {device_str}...")
             cmd1 = f'"{python_exe}" detection.py --test_path "{input_dir}" --output_dir "{mask_dir}" --input_size full_size --GPU {gpu_id}'
             
             import subprocess
@@ -112,8 +121,8 @@ class BOPBTLStage:
             new_mask = mask_dir / "mask"
 
             # 2. Restoration (Scratch and Quality restore)
-            logger.info("BOPBTL: Running restoration...")
-            cmd2 = f'"{python_exe}" test.py --Scratch_and_Quality_restore --test_input "{new_input}" --test_mask "{new_mask}" --outputs_dir "{output_dir}" --gpu_ids {gpu_id}'
+            logger.info(f"BOPBTL: Running restoration on {device_str} (HR={use_hr_mode})...")
+            cmd2 = f'"{python_exe}" test.py --Scratch_and_Quality_restore --test_input "{new_input}" --test_mask "{new_mask}" --outputs_dir "{output_dir}" --gpu_ids {gpu_id} {hr_flag}'
             
             proc2 = await asyncio.to_thread(
                 subprocess.run,
@@ -148,13 +157,25 @@ class BOPBTLStage:
                 raise RuntimeError(f"Failed to read restored image from {output_img_path}")
 
             elapsed = (time.perf_counter() - start) * 1000
+            h_out, w_out = restored_img.shape[:2]
+            
+            vram_str = "N/A"
+            if gpu_id != "-1":
+                try:
+                    vram_str = f"{torch.cuda.memory_allocated(0)/(1024**2):.1f}MB"
+                except:
+                    pass
             
             # Log exact metrics per PRD
-            h_in, w_in = img.shape[:2]
-            h_out, w_out = restored_img.shape[:2]
-            device_str = "GPU" if gpu_id != "-1" else "CPU"
-            
-            logger.info(f"Stage: BOPBTL | Time: {elapsed:.0f}ms | Device: {device_str} | Input: {w_in}x{h_in} | Output: {w_out}x{h_out}")
+            logger.info(
+                f"Stage: BOPBTL\n"
+                f"  Device: {device_str}\n"
+                f"  GPU name: {gpu_name}\n"
+                f"  Input resolution: {w_in}x{h_in}\n"
+                f"  Output resolution: {w_out}x{h_out}\n"
+                f"  Processing time: {elapsed:.0f}ms\n"
+                f"  VRAM if measurable: {vram_str}"
+            )
 
             return restored_img
 

@@ -76,22 +76,25 @@ def resize_if_needed(
     return resized, scale
 
 
-def is_grayscale(img: np.ndarray) -> bool:
+def is_grayscale_or_sepia(img: np.ndarray, std_threshold: float = 5.0) -> tuple[bool, float]:
     """
-    Heuristic check: is this image effectively grayscale?
-    Compares channel standard deviations — grayscale images have near-zero
-    cross-channel variance.
+    Check if an image is grayscale or sepia based on chrominance variance.
+    Returns (is_needs_colorization, chroma_std).
+    Historical sepia photos and faded black-and-white photos have low chrominance variance.
     """
-    if len(img.shape) == 2:
-        return True
-    if img.shape[2] == 1:
-        return True
-    # Compare channels
-    b, g, r = cv2.split(img)
-    diff_rg = np.mean(np.abs(r.astype(float) - g.astype(float)))
-    diff_rb = np.mean(np.abs(r.astype(float) - b.astype(float)))
-    threshold = 10.0  # Mean pixel difference threshold
-    return diff_rg < threshold and diff_rb < threshold
+    if len(img.shape) == 2 or img.shape[2] == 1:
+        return True, 0.0
+    
+    # Convert to LAB to measure chrominance variance
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    
+    # Calculate standard deviation of A and B channels
+    std_a = np.std(lab[:, :, 1])
+    std_b = np.std(lab[:, :, 2])
+    
+    chroma_std = float((std_a + std_b) / 2.0)
+    
+    return chroma_std < std_threshold, chroma_std
 
 
 def detect_faces(img: np.ndarray) -> list[tuple[int, int, int, int]]:

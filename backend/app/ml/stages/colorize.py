@@ -15,7 +15,7 @@ import torch
 from loguru import logger
 
 from app.config import get_settings
-from app.utils.image_utils import is_grayscale
+from app.utils.image_utils import is_grayscale_or_sepia
 
 
 class ColorizeStage:
@@ -32,44 +32,49 @@ class ColorizeStage:
         if self._loaded:
             return
 
-        settings = get_settings()
-        model_path = Path(settings.model_dir) / "ddcolor_modelscope.pth"
-
         try:
-            # DDColor uses a custom architecture — we load via torch directly
-            if model_path.exists():
-                self._model = torch.jit.load(str(model_path), map_location=settings.device)
-                self._model.eval()
-                self._loaded = True
-                logger.info("DDColor model loaded successfully")
-            else:
-                logger.warning(
-                    f"DDColor weights not found at {model_path}. "
-                    "Colorize will use a simple LAB-space heuristic fallback."
-                )
+            from modelscope.pipelines import pipeline
+            from modelscope.utils.constant import Tasks
+            logger.info("Initializing ModelScope DDColor pipeline...")
+            
+            # This will automatically download weights if missing and use the correct architecture
+            self._model = pipeline(Tasks.image_colorization, model='damo/cv_ddcolor_image-colorization')
+            
+            self._loaded = True
+            logger.info("DDColor model loaded successfully via ModelScope")
         except Exception as e:
-            logger.warning(f"DDColor load failed: {e}. Using fallback colorization.")
+            import traceback
+            trace = traceback.format_exc()
+            logger.warning(f"DDColor load failed: {e}\n{trace}")
 
     def is_available(self) -> bool:
         return self._loaded and self._model is not None
 
-    async def process(self, img: np.ndarray, force: bool = False) -> np.ndarray:
+    async def process(self, img: np.ndarray, colorization_mode: str = "auto") -> np.ndarray:
         """
-        Colorize a BGR image.
+        Colorize a BGR image using DDColor.
 
         Args:
             img: Input BGR image (NumPy array).
-            force: If True, colorize even if image appears to already be color.
+            colorization_mode: "auto", "force", or "off".
 
         Returns:
             Colorized BGR image.
         """
         start = time.perf_counter()
 
-        # Skip if the image is already in color (unless forced)
-        if not force and not is_grayscale(img):
+        if colorization_mode == "off":
+            logger.info("Colorize: mode is off, skipping")
+            return img
+
+        # Determine if we should colorize
+        needs_color, chroma_std = is_grayscale_or_sepia(img)
+        
+        logger.info(f"Colorize: mode={colorization_mode}, detected_gray/sepia={needs_color}, chroma_std={chroma_std:.2f}")
+
+        if colorization_mode == "auto" and not needs_color:
             elapsed = (time.perf_counter() - start) * 1000
-            logger.info(f"Colorize: image is already color, skipping ({elapsed:.0f}ms)")
+            logger.info(f"Colorize: image is already color (auto mode), skipping ({elapsed:.0f}ms)")
             return img
 
         if not self.is_available():
@@ -79,71 +84,30 @@ class ColorizeStage:
             try:
                 output = self._run_ddcolor(img)
                 elapsed = (time.perf_counter() - start) * 1000
-                logger.info(f"Colorize (DDColor): completed in {elapsed:.0f}ms")
+                device_name = "cuda" if "cuda" in str(get_settings().device) else "cpu"
+                logger.info(f"Colorize (DDColor): executed=True, device={device_name}, completed in {elapsed:.0f}ms")
                 return output
             except Exception as e:
                 logger.error(f"DDColor inference failed: {e}")
+                raise RuntimeError(f"Colorization failed: {e}")
 
-        # Fallback: simple LAB-space pseudo-colorization (sepia-tinted)
-        output = self._fallback_colorize(img)
-        elapsed = (time.perf_counter() - start) * 1000
-        logger.info(f"Colorize (fallback sepia): completed in {elapsed:.0f}ms")
-        return output
+        logger.error("DDColor model is not available. Cannot perform colorization.")
+        raise RuntimeError("DDColor model is not available.")
 
     def _run_ddcolor(self, img: np.ndarray) -> np.ndarray:
-        """Run DDColor inference."""
-        settings = get_settings()
-        device = torch.device(settings.device)
-
-        # Prepare input: resize to 512x512, normalize
-        h, w = img.shape[:2]
-        img_resized = cv2.resize(img, (512, 512), interpolation=cv2.INTER_CUBIC)
-
-        # Convert to LAB, take L channel
-        lab = cv2.cvtColor(img_resized, cv2.COLOR_BGR2LAB)
-        l_channel = lab[:, :, 0]
-
-        # Normalize L to [0, 1] and create tensor
-        l_tensor = torch.from_numpy(l_channel.astype(np.float32) / 255.0)
-        l_tensor = l_tensor.unsqueeze(0).unsqueeze(0).to(device)  # (1, 1, 512, 512)
-
-        with torch.no_grad():
-            ab_pred = self._model(l_tensor)  # Predicted a, b channels
-
-        # Post-process: denormalize and merge with L
-        ab_pred = ab_pred.squeeze(0).cpu().numpy().transpose(1, 2, 0)  # (512, 512, 2)
-        ab_pred = (ab_pred * 128).astype(np.float32)  # Scale to LAB range
-
-        # Merge L + predicted ab
-        lab_output = np.zeros((512, 512, 3), dtype=np.float32)
-        lab_output[:, :, 0] = l_channel.astype(np.float32)
-        lab_output[:, :, 1:] = ab_pred
-
-        # Convert back to BGR and resize to original dimensions
-        colorized = cv2.cvtColor(lab_output.astype(np.uint8), cv2.COLOR_LAB2BGR)
-        colorized = cv2.resize(colorized, (w, h), interpolation=cv2.INTER_CUBIC)
-
+        """Run DDColor inference using ModelScope pipeline."""
+        from modelscope.outputs import OutputKeys
+        
+        # ModelScope pipeline handles the resizing, L channel extraction, 
+        # color inference, and LAB to BGR conversion internally.
+        result = self._model(img)
+        
+        # The output is directly the colorized BGR image
+        colorized = result[OutputKeys.OUTPUT_IMG]
+        
         return colorized
 
-    def _fallback_colorize(self, img: np.ndarray) -> np.ndarray:
-        """
-        Simple fallback: apply a warm sepia tone to grayscale images.
-        This is not ML-based — just a visually pleasing tint.
-        """
-        # Ensure grayscale
-        if len(img.shape) == 3:
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        else:
-            gray = img
 
-        # Apply sepia color map
-        normalized = gray.astype(np.float64) / 255.0
-        sepia = np.zeros((gray.shape[0], gray.shape[1], 3), dtype=np.float64)
-        sepia[:, :, 0] = normalized * 204  # B
-        sepia[:, :, 1] = normalized * 204  # G
-        sepia[:, :, 2] = normalized * 230  # R (warmer)
-
-        return np.clip(sepia, 0, 255).astype(np.uint8)
 
     def unload(self) -> None:
         """Free model memory."""

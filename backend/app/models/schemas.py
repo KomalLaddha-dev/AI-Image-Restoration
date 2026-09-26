@@ -25,6 +25,11 @@ class RestorationMode(str, Enum):
     COLORIZE = "colorize"
     ADVANCED = "advanced"
 
+class ColorizationMode(str, Enum):
+    AUTO = "auto"
+    FORCE = "force"
+    OFF = "off"
+
 
 class RestorationStage(str, Enum):
     OLD_PHOTO_REPAIR = "old_photo_repair"
@@ -39,7 +44,8 @@ class RestorationStage(str, Enum):
 class RestoreOptions(BaseModel):
     """Options sent with a restoration request."""
     face_restore: bool = Field(default=False, description="Enable face restoration (GFPGAN)")
-    colorize: bool = Field(default=False, description="Enable colorization (DDColor)")
+    colorize: bool = Field(default=False, description="Legacy parameter. Use colorization_mode instead.")
+    colorization_mode: ColorizationMode = Field(default=ColorizationMode.AUTO, description="auto, force, or off")
     denoise: bool = Field(default=False, description="Enable denoising/deblurring (NAFNet)")
     mode: RestorationMode = Field(
         default=RestorationMode.STANDARD,

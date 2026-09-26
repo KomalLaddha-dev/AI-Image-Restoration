@@ -54,15 +54,18 @@ class UpscaleStage:
 
             model_path = Path(settings.model_dir) / "RealESRGAN_x4plus.pth"
 
+            device_str = "cuda:0" if torch.cuda.is_available() and settings.device == "cuda" else "cpu"
+            half = True if device_str == "cuda:0" else False
+
             self._model = RealESRGANer(
                 scale=4,
                 model_path=str(model_path) if model_path.exists() else None,
                 model=rrdb_model,
-                tile=400,  # Process in 400x400 chunks to prevent CPU OOM
+                tile=400,  # Process in 400x400 chunks to prevent OOM
                 tile_pad=10,
                 pre_pad=0,
-                half=False,  # fp16 only on GPU
-                device=settings.device,
+                half=half,
+                device=torch.device(device_str),
             )
             self._loaded = True
             logger.info("Real-ESRGAN x4plus model loaded successfully")
@@ -89,9 +92,26 @@ class UpscaleStage:
             try:
                 output, _ = self._model.enhance(img, outscale=2)
                 elapsed = (time.perf_counter() - start) * 1000
+                h_in, w_in = img.shape[:2]
+                h_out, w_out = output.shape[:2]
+                
+                device_str = "GPU 0" if self._model.device.type == "cuda" else "CPU"
+                gpu_name = torch.cuda.get_device_name(0) if self._model.device.type == "cuda" else "N/A"
+                vram_str = "N/A"
+                if self._model.device.type == "cuda":
+                    try:
+                        vram_str = f"{torch.cuda.memory_allocated(0)/(1024**2):.1f}MB"
+                    except:
+                        pass
+
                 logger.info(
-                    f"Upscale (Real-ESRGAN): {img.shape[1]}x{img.shape[0]} → "
-                    f"{output.shape[1]}x{output.shape[0]} in {elapsed:.0f}ms"
+                    f"Stage: Real-ESRGAN\n"
+                    f"  Device: {device_str}\n"
+                    f"  GPU name: {gpu_name}\n"
+                    f"  Input resolution: {w_in}x{h_in}\n"
+                    f"  Output resolution: {w_out}x{h_out}\n"
+                    f"  Processing time: {elapsed:.0f}ms\n"
+                    f"  VRAM if measurable: {vram_str}"
                 )
                 return output
             except Exception as e:
