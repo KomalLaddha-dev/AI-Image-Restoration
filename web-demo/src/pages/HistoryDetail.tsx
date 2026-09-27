@@ -157,53 +157,55 @@ export default function HistoryDetail() {
         </div>
 
         {/* Archival Before/After Restoration Module (Section 4.b) */}
-        <div className="my-16 p-6 md:p-8 rounded-3xl border border-border-theme bg-surface-subtle/50 dark:bg-surface-dark/40 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h3 className="font-heading text-xl font-bold text-ink dark:text-ink-dark flex items-center gap-2">
-                <Sparkle weight="fill" className="text-accent-sepia" /> Archival Restoration Study
-              </h3>
-              <p className="text-xs text-ink-muted dark:text-ink-muted-dark mt-1">
-                Interactive comparison of the 19th-century photographic plate vs neural restoration.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowArchivalComparison(!showArchivalComparison)}
-              className="px-4 py-2 rounded-lg border border-border-theme bg-surface dark:bg-surface-dark text-xs font-semibold uppercase tracking-wider hover:border-accent-sepia transition-colors flex items-center gap-1.5 self-start sm:self-auto"
-            >
-              <Sliders weight="bold" /> {showArchivalComparison ? 'Hide Slider' : 'View Slider'}
-            </button>
-          </div>
-
-          {showArchivalComparison ? (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-              <BeforeAfterSlider
-                beforeSrc="/samples/taj_mahal_hero_degraded.jpg"
-                afterSrc="/samples/taj_mahal_restored.jpg"
-                beforeLabel="Archival Plate"
-                afterLabel="Neural Restored"
-                aspectRatio="aspect-[4/3] md:aspect-[16/10]"
-              />
-            </motion.div>
-          ) : (
-            <div
-              onClick={() => setShowArchivalComparison(true)}
-              className="cursor-pointer group relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-black border border-border-theme flex items-center justify-center"
-            >
-              <img
-                src={referenceImage}
-                alt="Preview"
-                className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
-              <div className="relative px-6 py-3 rounded-full glass-panel text-xs font-semibold uppercase tracking-wider text-white flex items-center gap-2 shadow-xl">
-                <Sliders weight="bold" /> Click to Open Comparison Slider
+        {id === 'taj_mahal' && (
+          <div className="my-16 p-6 md:p-8 rounded-3xl border border-border-theme bg-surface-subtle/50 dark:bg-surface-dark/40 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="font-heading text-xl font-bold text-ink dark:text-ink-dark flex items-center gap-2">
+                  <Sparkle weight="fill" className="text-accent-sepia" /> Archival Restoration Study
+                </h3>
+                <p className="text-xs text-ink-muted dark:text-ink-muted-dark mt-1">
+                  Interactive comparison of the 19th-century photographic plate vs neural restoration.
+                </p>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setShowArchivalComparison(!showArchivalComparison)}
+                className="px-4 py-2 rounded-lg border border-border-theme bg-surface dark:bg-surface-dark text-xs font-semibold uppercase tracking-wider hover:border-accent-sepia transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+              >
+                <Sliders weight="bold" /> {showArchivalComparison ? 'Hide Slider' : 'View Slider'}
+              </button>
             </div>
-          )}
-        </div>
+
+            {showArchivalComparison ? (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                <BeforeAfterSlider
+                  beforeSrc="/samples/taj_mahal_hero_degraded.jpg"
+                  afterSrc="/samples/taj_mahal_restored.jpg"
+                  beforeLabel="Archival Plate"
+                  afterLabel="Neural Restored"
+                  aspectRatio="aspect-[4/3] md:aspect-[16/10]"
+                />
+              </motion.div>
+            ) : (
+              <div
+                onClick={() => setShowArchivalComparison(true)}
+                className="cursor-pointer group relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-black border border-border-theme flex items-center justify-center"
+              >
+                <img
+                  src={referenceImage}
+                  alt="Preview"
+                  className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                <div className="relative px-6 py-3 rounded-full glass-panel text-xs font-semibold uppercase tracking-wider text-white flex items-center gap-2 shadow-xl">
+                  <Sliders weight="bold" /> Click to Open Comparison Slider
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Architectural Specifications Grid */}
         <div className="my-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-12 border-t border-border-theme">

@@ -4,14 +4,14 @@ import json
 from PIL import Image
 
 def run():
-    with open('web-demo/public/samples/taj_mahal_degraded.jpg', 'rb') as f:
+    with open('web-demo/public/samples/taj_mahal_hero_degraded.jpg', 'rb') as f:
         img_bytes = f.read()
 
     boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
     parts = []
     parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="taj.jpg"\r\nContent-Type: image/jpeg\r\n\r\n'.encode('utf-8'))
     parts.append(img_bytes)
-    parts.append(f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="options"\r\n\r\n{{"denoise": true, "colorize": true, "face_restore": false}}\r\n--{boundary}--\r\n'.encode('utf-8'))
+    parts.append(f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="options"\r\n\r\n{{"denoise": true, "colorize": true, "face_restore": false, "mode": "advanced"}}\r\n--{boundary}--\r\n'.encode('utf-8'))
     body = b''.join(parts)
 
     req = urllib.request.Request(
@@ -28,7 +28,7 @@ def run():
         with Image.open(io.BytesIO(restored_bytes)) as im:
             im = im.convert('RGB')
             # Verify exact dimension match with degraded image
-            with Image.open('web-demo/public/samples/taj_mahal_degraded.jpg') as deg:
+            with Image.open('web-demo/public/samples/taj_mahal_hero_degraded.jpg') as deg:
                 print('Degraded size:', deg.size)
                 print('Restored size before resize:', im.size)
                 if im.size != deg.size:

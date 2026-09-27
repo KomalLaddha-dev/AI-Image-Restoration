@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from loguru import logger
 
-from app.models.schemas import RestorationStage, RestoreOptions, StageResult
+from app.models.schemas import RestorationStage, RestorationMode, RestoreOptions, StageResult
 from app.ml.stages.bopbtl_restore import BOPBTLStage
 from app.ml.stages.denoise_deblur import DenoiseDeblurStage
 from app.ml.stages.face_restore import FaceRestoreStage
@@ -139,6 +139,9 @@ class RestorationPipeline:
                     logger.info("Colorization requested: true")
                     mode = options.colorization_mode.value
                     current = await stage.process(current, colorization_mode=mode)
+                elif stage_key == RestorationStage.OLD_PHOTO_REPAIR:
+                    hr_mode = options.mode == RestorationMode.ADVANCED
+                    current = await stage.process(current, use_hr_mode=hr_mode)
                 else:
                     current = await stage.process(current)
                 
