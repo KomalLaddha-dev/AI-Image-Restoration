@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MagicWand, 
@@ -8,7 +8,11 @@ import {
   DropHalfBottom, 
   CameraRotate, 
   Sliders,
-  WarningCircle
+  WarningCircle,
+  CheckCircle,
+  CircleNotch,
+  Clock,
+  MinusCircle
 } from '@phosphor-icons/react';
 import UploadZone from '../components/UploadZone';
 import BeforeAfterSlider from '../components/BeforeAfterSlider';
@@ -16,11 +20,73 @@ import ProgressBar from '../components/ProgressBar';
 import { restoreSync } from '../utils/api';
 import type { RestoreOptions, RestoreResult } from '../types';
 
+/** A single stage in the restoration pipeline display. */
+interface PipelineStage {
+  id: string;
+  label: string;
+  tag: string;
+  status: 'waiting' | 'processing' | 'completed' | 'skipped' | 'failed';
+  skipReason?: string;
+}
+
+/**
+ * Build the ordered pipeline stages based on user-selected options.
+ * Old Photo Repair (BOPBTL) is always first and always runs.
+ * Upscale (Real-ESRGAN) is always last and always runs.
+ * The three optional stages in-between depend on the user's toggle state.
+ */
+function buildPipelineStages(options: RestoreOptions): PipelineStage[] {
+  const stages: PipelineStage[] = [];
+
+  // Always-on: Old Photo Repair
+  stages.push({
+    id: 'old_photo_repair',
+    label: 'Old Photo Defect Repair',
+    tag: 'BOPBTL',
+    status: 'waiting',
+  });
+
+  // Optional: Denoise/Deblur
+  stages.push({
+    id: 'denoise',
+    label: 'Denoise & Deblur',
+    tag: 'NAFNet',
+    status: options.denoise ? 'waiting' : 'skipped',
+    skipReason: options.denoise ? undefined : 'Disabled by user',
+  });
+
+  // Optional: Face Restore
+  stages.push({
+    id: 'face_restore',
+    label: 'Facial Detail Reconstruction',
+    tag: 'GFPGAN',
+    status: options.face_restore ? 'waiting' : 'skipped',
+    skipReason: options.face_restore ? undefined : 'Disabled by user',
+  });
+
+  // Optional: Colorize
+  stages.push({
+    id: 'colorize',
+    label: 'Historical Colorization',
+    tag: 'DDColor',
+    status: options.colorize ? 'waiting' : 'skipped',
+    skipReason: options.colorize ? undefined : 'Disabled by user',
+  });
+
+  // Always-on: Upscale
+  stages.push({
+    id: 'upscale',
+    label: 'Final Composite & Upscale',
+    tag: 'Real-ESRGAN',
+    status: 'waiting',
+  });
+
+  return stages;
+}
+
 export default function RestorePage() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [stageName, setStageName] = useState('Initializing models');
   const [result, setResult] = useState<RestoreResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [options, setOptions] = useState<RestoreOptions>({
@@ -29,44 +95,99 @@ export default function RestorePage() {
     face_restore: true,
   });
 
+  // Pipeline stages state — built dynamically from options
+  const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([]);
+
   const handleToggle = (key: keyof RestoreOptions) => {
     setOptions((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // Compute overall progress from pipeline stages
+  const overallProgress = useMemo(() => {
+    if (pipelineStages.length === 0) return 0;
+    const total = pipelineStages.length;
+    const done = pipelineStages.filter(
+      (s) => s.status === 'completed' || s.status === 'skipped'
+    ).length;
+    const processing = pipelineStages.filter((s) => s.status === 'processing').length;
+    return Math.round(((done + processing * 0.5) / total) * 100);
+  }, [pipelineStages]);
+
+  const currentStageName = useMemo(() => {
+    const processing = pipelineStages.find((s) => s.status === 'processing');
+    if (processing) return `${processing.label} (${processing.tag})`;
+    const waiting = pipelineStages.find((s) => s.status === 'waiting');
+    if (waiting) return 'Preparing pipeline...';
+    return 'Finalizing...';
+  }, [pipelineStages]);
+
+  // Count how many enabled (non-skipped) stages there are for the button label
+  const enabledStageCount = useMemo(() => {
+    const stages = buildPipelineStages(options);
+    return stages.filter((s) => s.status !== 'skipped').length;
+  }, [options]);
 
   const handleRestore = async () => {
     if (!file) return;
     setLoading(true);
     setError(null);
-    setProgress(5);
-    setStageName('Submitting image tensor');
     setResult(null);
 
-    // Dynamic progress stages simulation while the neural net processes
-    const stages = [
-      { pct: 20, name: 'Stage 1: Old Photo Defect Repair (BOPBTL)' },
-      { pct: 45, name: 'Stage 2: NAFNet Denoise & Deblur' },
-      { pct: 65, name: 'Stage 3: GFPGAN Facial Detail Reconstruction' },
-      { pct: 85, name: 'Stage 4: DDColor Historical Colorization' },
-      { pct: 95, name: 'Stage 5: Final Composite & Real-ESRGAN Upscale' },
-    ];
+    // Build stages from current options
+    const stages = buildPipelineStages(options);
+    setPipelineStages(stages);
 
+    // Simulate stage progression for each enabled stage
+    const enabledStages = stages.filter((s) => s.status !== 'skipped');
     let stageIdx = 0;
+
+    const advanceStage = () => {
+      setPipelineStages((prev) => {
+        const updated = [...prev];
+        // Complete the current processing stage
+        const processingIdx = updated.findIndex((s) => s.status === 'processing');
+        if (processingIdx >= 0) {
+          updated[processingIdx] = { ...updated[processingIdx], status: 'completed' };
+        }
+        // Find the next waiting (non-skipped) stage and set it to processing
+        const nextWaiting = updated.findIndex((s) => s.status === 'waiting');
+        if (nextWaiting >= 0) {
+          updated[nextWaiting] = { ...updated[nextWaiting], status: 'processing' };
+        }
+        return updated;
+      });
+    };
+
+    // Start the first enabled stage
+    advanceStage();
+
     const interval = setInterval(() => {
-      if (stageIdx < stages.length) {
-        setProgress(stages[stageIdx].pct);
-        setStageName(stages[stageIdx].name);
-        stageIdx++;
+      stageIdx++;
+      if (stageIdx < enabledStages.length) {
+        advanceStage();
       }
-    }, 700);
+    }, 1200);
 
     try {
       const res = await restoreSync(file, options);
       clearInterval(interval);
-      setProgress(100);
-      setStageName('Restoration Complete');
+      // Mark all remaining stages as completed
+      setPipelineStages((prev) =>
+        prev.map((s) =>
+          s.status === 'processing' || s.status === 'waiting'
+            ? { ...s, status: 'completed' }
+            : s
+        )
+      );
       setResult(res);
     } catch (err: any) {
       clearInterval(interval);
+      // Mark current processing stage as failed
+      setPipelineStages((prev) =>
+        prev.map((s) =>
+          s.status === 'processing' ? { ...s, status: 'failed' } : s
+        )
+      );
       setError(err.message || 'Restoration failed. Please check the backend connection.');
     } finally {
       setLoading(false);
@@ -143,7 +264,7 @@ export default function RestorePage() {
                 className="w-full py-4 bg-accent-sepia hover:bg-accent-sepia-hover text-black font-semibold text-sm tracking-wider uppercase rounded-xl transition-all duration-200 shadow-md shadow-accent-sepia/25 hover:shadow-lg hover:shadow-accent-sepia/40 flex items-center justify-center gap-2"
               >
                 <MagicWand weight="bold" className="text-lg" />
-                Run 5-Stage Restoration Pipeline
+                Run {enabledStageCount}-Stage Restoration Pipeline
               </button>
             </motion.div>
           )}
@@ -160,7 +281,7 @@ export default function RestorePage() {
         </div>
       )}
 
-      {/* ── 2. Loading / Processing Sequence ───────────────────────────── */}
+      {/* ── 2. Loading / Processing Sequence — Dynamic Pipeline Stages ── */}
       {loading && (
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
@@ -172,10 +293,17 @@ export default function RestorePage() {
             Reconstructing Photograph
           </h2>
           <p className="text-xs font-mono uppercase tracking-widest text-accent-sepia mb-8">
-            {stageName}
+            {currentStageName}
           </p>
 
-          <ProgressBar progress={progress} stageName={stageName} />
+          <ProgressBar progress={overallProgress} stageName={currentStageName} />
+
+          {/* Dynamic Pipeline Stage List */}
+          <div className="w-full mt-10 space-y-3">
+            {pipelineStages.map((stage) => (
+              <PipelineStageRow key={stage.id} stage={stage} />
+            ))}
+          </div>
         </motion.div>
       )}
 
@@ -221,6 +349,18 @@ export default function RestorePage() {
             </button>
           </div>
 
+          {/* Stage Summary */}
+          {pipelineStages.length > 0 && (
+            <div className="w-full max-w-xl mt-10 space-y-2">
+              <h4 className="text-xs font-mono uppercase tracking-widest text-accent-sepia mb-3">
+                Pipeline Summary
+              </h4>
+              {pipelineStages.map((stage) => (
+                <PipelineStageRow key={stage.id} stage={stage} />
+              ))}
+            </div>
+          )}
+
           {result.processingTime > 0 && (
             <p className="text-xs text-ink-muted dark:text-ink-muted-dark mt-6 font-mono">
               Inference time: {(result.processingTime / 1000).toFixed(2)}s • Stages: {result.stages.join(', ')}
@@ -228,6 +368,65 @@ export default function RestorePage() {
           )}
         </motion.div>
       )}
+    </div>
+  );
+}
+
+/** Renders a single pipeline stage row with its current status */
+function PipelineStageRow({ stage }: { stage: PipelineStage }) {
+  const statusConfig = {
+    waiting: {
+      icon: <Clock weight="duotone" className="text-ink-muted" />,
+      label: 'Waiting',
+      className: 'text-ink-muted dark:text-ink-muted-dark',
+      bgClass: 'bg-surface-subtle/50 dark:bg-surface-dark/40',
+    },
+    processing: {
+      icon: <CircleNotch weight="bold" className="text-accent-sepia animate-spin" />,
+      label: 'Processing',
+      className: 'text-accent-sepia',
+      bgClass: 'bg-accent-sepia-faint border-accent-sepia/30',
+    },
+    completed: {
+      icon: <CheckCircle weight="fill" className="text-accent-green" />,
+      label: 'Completed',
+      className: 'text-accent-green',
+      bgClass: 'bg-accent-green-faint/50',
+    },
+    skipped: {
+      icon: <MinusCircle weight="duotone" className="text-ink-faint" />,
+      label: stage.skipReason ? `Skipped — ${stage.skipReason.toLowerCase()}` : 'Skipped',
+      className: 'text-ink-faint',
+      bgClass: 'bg-surface-subtle/30 dark:bg-surface-dark/20 opacity-60',
+    },
+    failed: {
+      icon: <WarningCircle weight="fill" className="text-red-500" />,
+      label: 'Failed',
+      className: 'text-red-500',
+      bgClass: 'bg-red-500/5 border-red-500/20',
+    },
+  };
+
+  const config = statusConfig[stage.status];
+
+  return (
+    <div
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border border-border-theme transition-all duration-200 ${config.bgClass}`}
+    >
+      <div className="shrink-0 text-lg">{config.icon}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-ink dark:text-ink-dark truncate">
+            {stage.label}
+          </span>
+          <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5 text-ink-muted shrink-0">
+            {stage.tag}
+          </span>
+        </div>
+      </div>
+      <span className={`text-[11px] font-semibold uppercase tracking-wider shrink-0 ${config.className}`}>
+        {config.label}
+      </span>
     </div>
   );
 }

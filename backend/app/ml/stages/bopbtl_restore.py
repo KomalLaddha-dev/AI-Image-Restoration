@@ -120,6 +120,9 @@ class BOPBTLStage:
             new_input = mask_dir / "input"
             new_mask = mask_dir / "mask"
 
+            if cuda_available:
+                torch.cuda.empty_cache()
+
             # 2. Restoration (Scratch and Quality restore)
             logger.info(f"BOPBTL: Running restoration on {device_str} (HR={use_hr_mode})...")
             cmd2 = f'"{python_exe}" test.py --Scratch_and_Quality_restore --test_input "{new_input}" --test_mask "{new_mask}" --outputs_dir "{output_dir}" --gpu_ids {gpu_id} {hr_flag}'
@@ -136,18 +139,26 @@ class BOPBTLStage:
             logger.debug(f"BOPBTL test.py STDOUT: {proc2.stdout}")
             if proc2.stderr:
                 logger.debug(f"BOPBTL test.py STDERR: {proc2.stderr}")
-            
-            if proc2.returncode != 0:
-                logger.error(f"BOPBTL Restore Failed:\nSTDOUT: {proc2.stdout}\nSTDERR: {proc2.stderr}")
-                raise RuntimeError(f"BOPBTL restore stage failed with return code {proc2.returncode}")
 
             # Read the final output image
             restored_dir = output_dir / "restored_image"
-            if not restored_dir.exists():
-                raise RuntimeError("BOPBTL did not produce a restored_image directory.")
+            output_files = list(restored_dir.glob("*")) if restored_dir.exists() else []
 
-            output_files = list(restored_dir.glob("*"))
-            if not output_files:
+            # If GPU ran out of memory or failed, retry gracefully on CPU
+            if not output_files and gpu_id != "-1":
+                logger.warning("BOPBTL GPU failed or out of memory. Retrying on CPU...")
+                cmd2_cpu = f'"{python_exe}" test.py --Scratch_and_Quality_restore --test_input "{new_input}" --test_mask "{new_mask}" --outputs_dir "{output_dir}" --gpu_ids -1 {hr_flag}'
+                proc2_cpu = await asyncio.to_thread(
+                    subprocess.run,
+                    cmd2_cpu,
+                    cwd=str(self._global_dir),
+                    shell=True,
+                    capture_output=True,
+                    text=True
+                )
+                output_files = list(restored_dir.glob("*")) if restored_dir.exists() else []
+
+            if not restored_dir.exists() or not output_files:
                 raise RuntimeError("BOPBTL did not produce any output images.")
 
             output_img_path = output_files[0]

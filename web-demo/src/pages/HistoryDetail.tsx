@@ -43,7 +43,8 @@ export default function HistoryDetail() {
   const getReferenceImage = () => {
     if (id === 'taj_mahal') return '/samples/taj_mahal.jpg';
     if (id === 'qutub_minar') return '/samples/qutub_minar.jpg';
-    if (id === 'colosseum') return '/samples/detroit_1915.jpg';
+    if (id === 'colosseum') return '/samples/colosseum.jpg';
+    if (id === 'pyramids_giza') return '/samples/pyramids_giza.jpg';
     if (data?.related_images && data.related_images.length > 0) {
       const first = data.related_images[0];
       return typeof first === 'string' ? first : first.url;
@@ -179,8 +180,8 @@ export default function HistoryDetail() {
           {showArchivalComparison ? (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
               <BeforeAfterSlider
-                beforeSrc="/samples/sample_portrait_before.png"
-                afterSrc="/samples/sample_portrait_after.png"
+                beforeSrc="/samples/taj_mahal_hero_degraded.jpg"
+                afterSrc="/samples/taj_mahal_restored.jpg"
                 beforeLabel="Archival Plate"
                 afterLabel="Neural Restored"
                 aspectRatio="aspect-[4/3] md:aspect-[16/10]"

@@ -37,7 +37,7 @@ export default function Home() {
       name: 'Colosseum',
       location: 'Rome, Italy',
       era: '70–80 CE',
-      imageUrl: '/samples/detroit_1915.jpg',
+      imageUrl: '/samples/colosseum.jpg',
       confidence: 0.91,
     },
   ];
@@ -109,10 +109,10 @@ export default function Home() {
         >
           <div className="relative p-2 md:p-3 rounded-3xl bg-surface/70 dark:bg-surface-dark/70 border border-border-theme shadow-2xl backdrop-blur-sm">
             <BeforeAfterSlider
-              beforeSrc="/samples/sample_portrait_before.png"
-              afterSrc="/samples/sample_portrait_after.png"
-              beforeLabel="Degraded Archival"
-              afterLabel="Restored Neural"
+              beforeSrc="/samples/taj_mahal_hero_degraded.jpg"
+              afterSrc="/samples/taj_mahal_restored.jpg"
+              beforeLabel="Original / Degraded"
+              afterLabel="AI Restored"
               aspectRatio="aspect-[4/3] md:aspect-[16/10]"
               autoAnimate={true}
             />

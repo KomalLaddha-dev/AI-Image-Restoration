@@ -74,6 +74,8 @@ export default function BeforeAfterSlider({
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
+    // Prevent default to avoid text selection during drag
+    e.preventDefault();
     updatePosition(e.clientX);
   };
 
@@ -124,6 +126,7 @@ export default function BeforeAfterSlider({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      style={{ touchAction: isDragging ? 'none' : 'pan-y' }}
       className={`relative w-full ${aspectRatio} rounded-2xl overflow-hidden cursor-ew-resize select-none border border-black/10 dark:border-white/10 shadow-2xl bg-surface-subtle dark:bg-surface-dark group outline-none focus-visible:ring-2 focus-visible:ring-accent-sepia ${className}`}
     >
       {/* After Image (Restored) — Full Background */}
@@ -132,11 +135,12 @@ export default function BeforeAfterSlider({
         alt={afterLabel}
         className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
         loading="eager"
+        decoding="async"
       />
 
       {/* Before Image (Original) — Clipped Polygon Overlay */}
       <div
-        className="absolute inset-0 pointer-events-none select-none"
+        className="absolute inset-0 pointer-events-none select-none will-change-[clip-path]"
         style={{
           clipPath: `polygon(0 0, ${position}% 0, ${position}% 100%, 0 100%)`,
         }}
@@ -146,17 +150,18 @@ export default function BeforeAfterSlider({
           alt={beforeLabel}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
           loading="eager"
+          decoding="async"
         />
       </div>
 
       {/* Slider Divider Line */}
       <div
-        className="absolute top-0 bottom-0 w-[2px] bg-white/70 dark:bg-white/40 shadow-[0_0_8px_rgba(0,0,0,0.4)] pointer-events-none z-20"
+        className="absolute top-0 bottom-0 w-[2px] bg-white/80 dark:bg-white/50 shadow-[0_0_12px_rgba(0,0,0,0.5)] pointer-events-none z-20"
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
       >
-        {/* Handle Knob with Glassmorphism Treatment */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full glass-panel flex items-center justify-center text-ink dark:text-white shadow-xl group-hover:scale-105 active:scale-95 transition-transform duration-150">
-          <ArrowsLeftRight weight="bold" className="text-lg" />
+        {/* Handle Knob — Larger and more visually obvious */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full glass-panel flex items-center justify-center text-ink dark:text-white shadow-xl group-hover:scale-110 active:scale-95 transition-transform duration-150 border-2 border-white/40">
+          <ArrowsLeftRight weight="bold" className="text-xl" />
         </div>
       </div>
 
