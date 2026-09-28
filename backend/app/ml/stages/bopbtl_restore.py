@@ -144,19 +144,61 @@ class BOPBTLStage:
             restored_dir = output_dir / "restored_image"
             output_files = list(restored_dir.glob("*")) if restored_dir.exists() else []
 
-            # If GPU ran out of memory or failed, retry gracefully on CPU
+            # If GPU ran out of memory, retry on GPU with a smaller image before CPU fallback
             if not output_files and gpu_id != "-1":
-                logger.warning("BOPBTL GPU failed or out of memory. Retrying on CPU...")
-                cmd2_cpu = f'"{python_exe}" test.py --Scratch_and_Quality_restore --test_input "{new_input}" --test_mask "{new_mask}" --outputs_dir "{output_dir}" --gpu_ids -1 {hr_flag}'
-                proc2_cpu = await asyncio.to_thread(
-                    subprocess.run,
-                    cmd2_cpu,
-                    cwd=str(self._global_dir),
-                    shell=True,
-                    capture_output=True,
-                    text=True
+                oom_downscale = 768
+                logger.warning(f"BOPBTL GPU OOM at {w_in}x{h_in}. Retrying on GPU with max_side={oom_downscale}...")
+
+                # Downscale the input and mask for a second GPU attempt
+                oom_input_dir = temp_dir_path / "oom_input"
+                oom_mask_dir = temp_dir_path / "oom_mask"
+                oom_output_dir = temp_dir_path / "oom_output"
+                oom_input_dir.mkdir()
+                oom_mask_dir.mkdir()
+                oom_output_dir.mkdir()
+
+                # Re-read, resize, and re-detect at smaller scale
+                small_img, _ = resize_if_needed(img, max_side=oom_downscale)
+                h_small, w_small = small_img.shape[:2]
+                cv2.imwrite(str(oom_input_dir / "image.png"), small_img)
+
+                cmd1_small = f'"{python_exe}" detection.py --test_path "{oom_input_dir}" --output_dir "{oom_mask_dir}" --input_size full_size --GPU {gpu_id}'
+                await asyncio.to_thread(
+                    subprocess.run, cmd1_small,
+                    cwd=str(self._global_dir), shell=True, capture_output=True, text=True
                 )
-                output_files = list(restored_dir.glob("*")) if restored_dir.exists() else []
+                oom_new_input = oom_mask_dir / "input"
+                oom_new_mask = oom_mask_dir / "mask"
+
+                cmd2_small = f'"{python_exe}" test.py --Scratch_and_Quality_restore --test_input "{oom_new_input}" --test_mask "{oom_new_mask}" --outputs_dir "{oom_output_dir}" --gpu_ids {gpu_id} {hr_flag}'
+                proc2_small = await asyncio.to_thread(
+                    subprocess.run, cmd2_small,
+                    cwd=str(self._global_dir), shell=True, capture_output=True, text=True
+                )
+                logger.debug(f"BOPBTL retry STDOUT: {proc2_small.stdout}")
+
+                oom_restored_dir = oom_output_dir / "restored_image"
+                oom_files = list(oom_restored_dir.glob("*")) if oom_restored_dir.exists() else []
+
+                if oom_files:
+                    logger.info(f"BOPBTL: GPU retry succeeded at {w_small}x{h_small}")
+                    restored_dir = oom_restored_dir
+                    output_files = oom_files
+                    w_in, h_in = w_small, h_small  # update for logging
+                else:
+                    # Final fallback: CPU at the reduced resolution
+                    logger.warning("BOPBTL GPU retry also failed. Falling back to CPU...")
+                    cmd2_cpu = f'"{python_exe}" test.py --Scratch_and_Quality_restore --test_input "{oom_new_input}" --test_mask "{oom_new_mask}" --outputs_dir "{oom_output_dir}" --gpu_ids -1 {hr_flag}'
+                    await asyncio.to_thread(
+                        subprocess.run, cmd2_cpu,
+                        cwd=str(self._global_dir), shell=True, capture_output=True, text=True
+                    )
+                    oom_files = list(oom_restored_dir.glob("*")) if oom_restored_dir.exists() else []
+                    if oom_files:
+                        restored_dir = oom_restored_dir
+                        output_files = oom_files
+                        device_str = "CPU (fallback)"
+                        w_in, h_in = w_small, h_small
 
             if not restored_dir.exists() or not output_files:
                 raise RuntimeError("BOPBTL did not produce any output images.")
