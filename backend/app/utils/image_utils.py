@@ -155,3 +155,43 @@ def save_image_to_file(img: np.ndarray, path: str | Path) -> Path:
     cv2.imwrite(str(path), img)
     logger.debug(f"Saved image to {path}")
     return path
+
+def auto_crop_border(img: np.ndarray) -> np.ndarray:
+    """
+    Detects and crops out the physical torn-photo print border.
+    Uses Canny edge detection and contour finding to locate the main photo content.
+    """
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Blur to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    # Edge detection
+    edges = cv2.Canny(blurred, 50, 150)
+    # Dilate edges to connect them
+    kernel = np.ones((5,5), np.uint8)
+    dilated = cv2.dilate(edges, kernel, iterations=2)
+    
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return img
+        
+    # Get the bounding box of the largest contour by area
+    largest = max(contours, key=cv2.contourArea)
+    x, y, w, h = cv2.boundingRect(largest)
+    
+    img_h, img_w = img.shape[:2]
+    # Check if the bounding box represents a reasonable crop (at least 60% of image)
+    if (w > img_w * 0.6) and (h > img_h * 0.6):
+        # Add a tiny margin to avoid keeping the exact edge line
+        mx = int(w * 0.015)
+        my = int(h * 0.015)
+        
+        y1 = min(y + my, img_h - 1)
+        y2 = max(y + h - my, y1 + 1)
+        x1 = min(x + mx, img_w - 1)
+        x2 = max(x + w - mx, x1 + 1)
+        
+        cropped = img[y1:y2, x1:x2]
+        logger.info(f"Auto-cropped border: {img_w}x{img_h} -> {x2-x1}x{y2-y1}")
+        return cropped
+        
+    return img

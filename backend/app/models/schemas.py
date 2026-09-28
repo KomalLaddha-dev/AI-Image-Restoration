@@ -47,6 +47,8 @@ class RestoreOptions(BaseModel):
     colorize: bool = Field(default=False, description="Enable colorization (DDColor)")
     colorization_mode: ColorizationMode = Field(default=ColorizationMode.AUTO, description="auto, force, or off")
     denoise: bool = Field(default=False, description="Enable denoising/deblurring (NAFNet)")
+    crop_borders: bool = Field(default=False, description="Detect and crop out physical print borders")
+    reference_monument_id: str | None = Field(default=None, description="Monument ID for reference-guided color transfer")
     mode: RestorationMode = Field(
         default=RestorationMode.STANDARD,
         description="Standard, portrait, colorize, or advanced.",

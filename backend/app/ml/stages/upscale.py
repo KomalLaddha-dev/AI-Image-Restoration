@@ -78,9 +78,10 @@ class UpscaleStage:
         """Check if the model is loaded and ready."""
         return self._loaded and self._model is not None
 
-    async def process(self, img: np.ndarray) -> np.ndarray:
+    async def process(self, img: np.ndarray, outscale: int = 2) -> np.ndarray:
         """
-        Upscale a BGR image by 4x using Real-ESRGAN.
+        Upscale a BGR image using Real-ESRGAN.
+        outscale: scale factor (e.g. 2 for standard, 4 for advanced).
         Falls back to bicubic interpolation if the model isn't available.
         """
         start = time.perf_counter()
@@ -90,7 +91,7 @@ class UpscaleStage:
 
         if self.is_available():
             try:
-                output, _ = self._model.enhance(img, outscale=2)
+                output, _ = self._model.enhance(img, outscale=outscale)
                 elapsed = (time.perf_counter() - start) * 1000
                 h_in, w_in = img.shape[:2]
                 h_out, w_out = output.shape[:2]
@@ -105,7 +106,7 @@ class UpscaleStage:
                         pass
 
                 logger.info(
-                    f"Stage: Real-ESRGAN\n"
+                    f"Stage: Real-ESRGAN (outscale={outscale})\n"
                     f"  Device: {device_str}\n"
                     f"  GPU name: {gpu_name}\n"
                     f"  Input resolution: {w_in}x{h_in}\n"
@@ -117,11 +118,11 @@ class UpscaleStage:
             except Exception as e:
                 logger.error(f"Real-ESRGAN failed, falling back to bicubic: {e}")
 
-        # Fallback: bicubic 2x upscale
+        # Fallback: bicubic upscale
         h, w = img.shape[:2]
-        output = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
+        output = cv2.resize(img, (w * outscale, h * outscale), interpolation=cv2.INTER_CUBIC)
         elapsed = (time.perf_counter() - start) * 1000
-        logger.info(f"Upscale (fallback bicubic): {w}x{h} → {w*2}x{h*2} in {elapsed:.0f}ms")
+        logger.info(f"Upscale (fallback bicubic {outscale}x): {w}x{h} → {w*outscale}x{h*outscale} in {elapsed:.0f}ms")
         return output
 
     def unload(self) -> None:

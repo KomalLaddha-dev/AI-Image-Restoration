@@ -24,7 +24,8 @@ from app.ml.stages.denoise_deblur import DenoiseDeblurStage
 from app.ml.stages.face_restore import FaceRestoreStage
 from app.ml.stages.colorize import ColorizeStage
 from app.ml.stages.upscale import UpscaleStage
-from app.utils.image_utils import resize_if_needed
+from app.ml.quality_checks import check_post_bopbtl_quality
+from app.utils.image_utils import resize_if_needed, auto_crop_border
 
 
 @dataclass
@@ -46,10 +47,8 @@ class RestorationPipeline:
         result = await pipeline.restore(image, options)
     """
 
-    # Canonical stage order — colorize runs right after BOPBTL
-    # (least-smoothed point) so DDColor sees real texture/edges.
-    # Denoise runs after colorization to clean up color artifacts
-    # without flattening texture before DDColor sees it.
+    # Canonical stage order — old_photo_repair must run before colorize
+    # so that the scratch detection model receives a grayscale image.
     # old_photo_repair → colorize → denoise → face_restore → upscale
     STAGE_ORDER = [
         RestorationStage.OLD_PHOTO_REPAIR,
@@ -101,6 +100,13 @@ class RestorationPipeline:
             logger.info(f"Input image resized by {scale:.2f}x before pipeline")
             warnings.append(f"Input image resized to avoid OOM.")
 
+        if getattr(options, "crop_borders", False):
+            pre_crop_shape = current.shape
+            current = auto_crop_border(current)
+            if current.shape != pre_crop_shape:
+                logger.info(f"Auto-cropped border: {pre_crop_shape[:2]} -> {current.shape[:2]}")
+                warnings.append("Physical print border detected and removed.")
+
         # Determine enabled stages based on PRD
         enabled = {RestorationStage.OLD_PHOTO_REPAIR, RestorationStage.UPSCALE}
         if options.denoise:
@@ -139,9 +145,47 @@ class RestorationPipeline:
                     logger.info("Colorization requested: true")
                     mode = options.colorization_mode.value
                     current = await stage.process(current, colorization_mode=mode)
+                    
+                    if getattr(options, "reference_monument_id", None):
+                        import cv2
+                        from pathlib import Path
+                        ref_path = Path(f"F:/AI Image Restoration/web-demo/public/samples/{options.reference_monument_id}.jpg")
+                        if ref_path.exists():
+                            try:
+                                ref_img = cv2.imread(str(ref_path))
+                                if ref_img is not None:
+                                    from app.utils.color_transfer import apply_color_transfer
+                                    current = apply_color_transfer(current, ref_img)
+                                    logger.info(f"Applied reference-guided color transfer using {ref_path.name}")
+                                    warnings.append(f"Reference-guided color transfer applied using {options.reference_monument_id}")
+                            except Exception as e:
+                                logger.error(f"Failed to apply color transfer: {e}")
+                                warnings.append("Reference-guided color transfer failed.")
+                        else:
+                            logger.warning(f"Reference image not found at {ref_path}")
+                    
+                    # FREE VRAM: Unload colorize model immediately to ensure BOPBTL has enough memory
+                    stage.unload()
+                    import torch
+                    torch.cuda.empty_cache()
                 elif stage_key == RestorationStage.OLD_PHOTO_REPAIR:
-                    hr_mode = options.mode == RestorationMode.ADVANCED
-                    current = await stage.process(current, use_hr_mode=hr_mode)
+                    pre_bopbtl = current.copy()
+                    is_hr = options.mode == RestorationMode.ADVANCED
+                    
+                    # Run BOPBTL at 1200 max_side to preserve sharpness.
+                    # It will fall back to CPU if it hits a CUDA OOM on 6GB cards.
+                    current = await stage.process(current, use_hr_mode=is_hr, max_bopbtl_size=1200)
+                    
+                    # Automated post-BOPBTL quality checks & fix
+                    from app.ml.quality_checks import check_post_bopbtl_quality, fix_post_bopbtl_artifacts
+                    bopbtl_warnings = check_post_bopbtl_quality(pre_bopbtl, current)
+                    if bopbtl_warnings and is_hr:
+                        current = fix_post_bopbtl_artifacts(pre_bopbtl, current)
+                        logger.info("Applied automatic fix for HR mode artifacts (blended original pixels)")
+                    warnings.extend(bopbtl_warnings)
+                elif stage_key == RestorationStage.UPSCALE:
+                    outscale = 4 if options.mode == RestorationMode.ADVANCED else 2
+                    current = await stage.process(current, outscale=outscale)
                 else:
                     current = await stage.process(current)
                 

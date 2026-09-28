@@ -95,7 +95,12 @@ class ColorizeStage:
 
         if self.is_available():
             try:
-                output = self._run_ddcolor(img)
+                # Convert to true grayscale to remove sepia/tint, then back to 3-channel
+                # so DDColor starts with clean neutral luminance.
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                neutral_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+                
+                output = self._run_ddcolor(neutral_bgr)
                 elapsed = (time.perf_counter() - start) * 1000
                 logger.info(f"Colorize: mode={colorization_mode}")
                 logger.info("DDColor: EXECUTED")
@@ -125,9 +130,13 @@ class ColorizeStage:
     def unload(self) -> None:
         """Free model memory."""
         if self._model is not None:
+            import gc
+            if hasattr(self._model, 'model'):
+                del self._model.model
             del self._model
             self._model = None
             self._loaded = False
+            gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             logger.info("DDColor model unloaded")
