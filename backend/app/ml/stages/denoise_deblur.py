@@ -63,11 +63,14 @@ class DenoiseDeblurStage:
     def is_available(self) -> bool:
         return self._loaded and self._model is not None
 
-    async def process(self, img: np.ndarray) -> np.ndarray:
+    async def process(self, img: np.ndarray, denoise_strength: float = 1.0) -> np.ndarray:
         """
         Denoise and deblur a BGR image.
         Uses NAFNet if available, otherwise falls back to OpenCV fastNlMeans.
         """
+        if denoise_strength <= 0.0:
+            return img
+
         start = time.perf_counter()
 
         if not self.is_available():
@@ -78,6 +81,10 @@ class DenoiseDeblurStage:
                 output = self._run_nafnet(img)
                 elapsed = (time.perf_counter() - start) * 1000
                 logger.info(f"Denoise (NAFNet): completed in {elapsed:.0f}ms")
+                
+                if denoise_strength < 1.0:
+                    output = cv2.addWeighted(output, denoise_strength, img, 1.0 - denoise_strength, 0)
+                
                 return output
             except Exception as e:
                 logger.error(f"NAFNet inference failed: {e}")

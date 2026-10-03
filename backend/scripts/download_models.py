@@ -39,7 +39,13 @@ MODELS = {
 }
 
 # These models require manual download due to licensing or complex setup:
-MANUAL_MODELS = {}
+MANUAL_MODELS = {
+    "Bringing-Old-Photos-Back-to-Life": {
+        "source": "https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life",
+        "instructions": "1. cd backend && git clone https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life\n      2. cd Bringing-Old-Photos-Back-to-Life && cd Face_Enhancement/models/networks && git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch\n      3. cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm . && cd ../../../Global/detection_models && git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch && cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm .\n      4. Download https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip\n      5. Unzip to backend/Bringing-Old-Photos-Back-to-Life/Global/checkpoints",
+        "description": "Microsoft BOPBTL Repository and Weights",
+    }
+}
 
 
 def download_file(url: str, dest: Path, description: str = "") -> bool:
@@ -87,7 +93,7 @@ def main():
         logger.info("The following models require manual download:")
         print()
         for filename, info in MANUAL_MODELS.items():
-            dest = model_dir / filename
+            dest = Path(filename)
             if dest.exists():
                 logger.info(f"  ✓ {filename} — already present")
             else:

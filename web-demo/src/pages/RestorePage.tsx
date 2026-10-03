@@ -12,7 +12,8 @@ import {
   CheckCircle,
   CircleNotch,
   Clock,
-  MinusCircle
+  MinusCircle,
+  Sparkle
 } from '@phosphor-icons/react';
 import UploadZone from '../components/UploadZone';
 import BeforeAfterSlider from '../components/BeforeAfterSlider';
@@ -73,6 +74,15 @@ function buildPipelineStages(options: RestoreOptions): PipelineStage[] {
     skipReason: options.colorize ? undefined : 'Disabled by user',
   });
 
+  // Optional: Generative Enhancement
+  stages.push({
+    id: 'generative',
+    label: 'Generative Enhancement',
+    tag: 'HYPIR',
+    status: options.generative ? 'waiting' : 'skipped',
+    skipReason: options.generative ? undefined : 'Disabled by user',
+  });
+
   // Always-on: Upscale
   stages.push({
     id: 'upscale',
@@ -93,6 +103,7 @@ export default function RestorePage() {
     denoise: true,
     colorize: true,
     face_restore: true,
+    generative: false,
   });
 
   // Pipeline stages state — built dynamically from options
@@ -169,7 +180,13 @@ export default function RestorePage() {
     }, 1200);
 
     try {
-      const res = await restoreSync(file, options);
+      const payloadOptions = {
+        ...options,
+        mode: options.generative ? 'enhanced' : 'standard',
+        generative_provider: options.generative ? 'colab' : 'off'
+      };
+      
+      const res = await restoreSync(file, payloadOptions);
       clearInterval(interval);
       // Mark all remaining stages as completed
       setPipelineStages((prev) =>
@@ -231,7 +248,7 @@ export default function RestorePage() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <PipelineToggle
                   active={options.denoise}
                   onClick={() => handleToggle('denoise')}
@@ -255,6 +272,14 @@ export default function RestorePage() {
                   title="Period Color"
                   tag="DDColor"
                   desc="Injects historically calibrated pigments based on scene semantics."
+                />
+                <PipelineToggle
+                  active={options.generative}
+                  onClick={() => handleToggle('generative')}
+                  icon={<Sparkle weight="duotone" />}
+                  title="Generative Enhance"
+                  tag="HYPIR"
+                  desc="Reconstructs complex architectural textures using latent diffusion."
                 />
               </div>
 

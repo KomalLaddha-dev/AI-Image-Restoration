@@ -24,6 +24,13 @@ class RestorationMode(str, Enum):
     PORTRAIT = "portrait"
     COLORIZE = "colorize"
     ADVANCED = "advanced"
+    ENHANCED = "enhanced"
+
+class GenerativeProvider(str, Enum):
+    LOCAL = "local"
+    COLAB = "colab"
+    HOSTED = "hosted"
+    OFF = "off"
 
 class ColorizationMode(str, Enum):
     AUTO = "auto"
@@ -32,6 +39,7 @@ class ColorizationMode(str, Enum):
 
 
 class RestorationStage(str, Enum):
+    CRACK_INPAINT = "crack_inpaint"
     OLD_PHOTO_REPAIR = "old_photo_repair"
     DENOISE = "denoise"
     FACE_RESTORE = "face_restore"
@@ -47,11 +55,19 @@ class RestoreOptions(BaseModel):
     colorize: bool = Field(default=False, description="Enable colorization (DDColor)")
     colorization_mode: ColorizationMode = Field(default=ColorizationMode.AUTO, description="auto, force, or off")
     denoise: bool = Field(default=False, description="Enable denoising/deblurring (NAFNet)")
+    denoise_strength: float = Field(default=0.0, ge=0.0, le=1.0, description="Denoise blend strength")
     crop_borders: bool = Field(default=False, description="Detect and crop out physical print borders")
     reference_monument_id: str | None = Field(default=None, description="Monument ID for reference-guided color transfer")
+    reference_guided_color: bool = Field(default=False, description="Apply Reinhard transfer from reference")
+    reference_blend_strength: float = Field(default=0.3, ge=0.0, le=1.0, description="Blend strength for Reinhard transfer")
+    crack_inpaint: bool = Field(default=True, description="Enable scratch/crack inpainting before old_photo_repair")
     mode: RestorationMode = Field(
         default=RestorationMode.STANDARD,
-        description="Standard, portrait, colorize, or advanced.",
+        description="Standard, portrait, colorize, advanced, or enhanced.",
+    )
+    generative_provider: GenerativeProvider = Field(
+        default=GenerativeProvider.OFF, 
+        description="Provider for generative enhancement"
     )
 
 
@@ -81,6 +97,7 @@ class RestoreResultResponse(BaseModel):
     completed_at: datetime | None = None
     error_message: str | None = None
     warnings: list[str] = []
+    ai_reconstructed: bool = False
 
 
 # ─── Monument Identification ─────────────────────────────────────────────────

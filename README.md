@@ -54,8 +54,23 @@ pip install -r requirements.txt
 copy .env.example .env
 # Edit .env with your GROQ_API_KEY, etc.
 
-# Download model weights
+# 1. Download standard models (Real-ESRGAN, GFPGAN, DDColor, NAFNet)
 python scripts/download_models.py
+
+# 2. Setup Microsoft BOPBTL (Old Photo Repair)
+git clone https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life
+cd Bringing-Old-Photos-Back-to-Life
+cd Face_Enhancement/models/networks
+git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
+cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm .
+cd ../../../Global/detection_models
+git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
+cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm .
+cd ../../../
+
+# 3. Download BOPBTL global checkpoints
+# Download: https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip
+# Unzip the contents directly into `backend/Bringing-Old-Photos-Back-to-Life/Global/checkpoints`
 
 # Run the server
 uvicorn app.main:app --reload --port 8000

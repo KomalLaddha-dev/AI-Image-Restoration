@@ -36,6 +36,7 @@ class PipelineResult:
     stage_results: list[StageResult] = field(default_factory=list)
     total_time_ms: int = 0
     warnings: list[str] = field(default_factory=list)
+    ai_reconstructed: bool = False
 
 
 class RestorationPipeline:
@@ -50,7 +51,9 @@ class RestorationPipeline:
     # Canonical stage order — old_photo_repair must run before colorize
     # so that the scratch detection model receives a grayscale image.
     # old_photo_repair → colorize → denoise → face_restore → upscale
+    # Canonical stage order
     STAGE_ORDER = [
+        RestorationStage.CRACK_INPAINT,
         RestorationStage.OLD_PHOTO_REPAIR,
         RestorationStage.COLORIZE,
         RestorationStage.DENOISE,
@@ -59,7 +62,11 @@ class RestorationPipeline:
     ]
 
     def __init__(self):
+        from app.ml.stages.crack_inpaint import CrackInpaintStage
+        from app.ml.stages.generative_enhance import GenerativeEnhancer
+        self.generative_enhancer = GenerativeEnhancer()
         self._stages: dict[RestorationStage, object] = {
+            RestorationStage.CRACK_INPAINT: CrackInpaintStage(),
             RestorationStage.OLD_PHOTO_REPAIR: BOPBTLStage(),
             RestorationStage.DENOISE: DenoiseDeblurStage(),
             RestorationStage.FACE_RESTORE: FaceRestoreStage(),
@@ -75,16 +82,6 @@ class RestorationPipeline:
         image: np.ndarray,
         options: RestoreOptions | None = None,
     ) -> PipelineResult:
-        """
-        Run the restoration pipeline on an input image.
-
-        Args:
-            image: BGR NumPy array (OpenCV format).
-            options: Which stages to enable and quality mode.
-
-        Returns:
-            PipelineResult with original, restored image, and per-stage timing.
-        """
         if options is None:
             options = RestoreOptions()
 
@@ -94,7 +91,6 @@ class RestorationPipeline:
         original = image.copy()
         current = image.copy()
 
-        # Cap input size to prevent OOM on very large images
         current, scale = resize_if_needed(current, max_side=2048)
         if scale < 1.0:
             logger.info(f"Input image resized by {scale:.2f}x before pipeline")
@@ -107,8 +103,9 @@ class RestorationPipeline:
                 logger.info(f"Auto-cropped border: {pre_crop_shape[:2]} -> {current.shape[:2]}")
                 warnings.append("Physical print border detected and removed.")
 
-        # Determine enabled stages based on PRD
         enabled = {RestorationStage.OLD_PHOTO_REPAIR, RestorationStage.UPSCALE}
+        if getattr(options, "crack_inpaint", True):
+            enabled.add(RestorationStage.CRACK_INPAINT)
         if options.denoise:
             enabled.add(RestorationStage.DENOISE)
         if options.face_restore:
@@ -141,22 +138,29 @@ class RestorationPipeline:
                 logger.info(f"Running stage: {stage_key.value}")
                 h_in, w_in = current.shape[:2]
                 
-                if stage_key == RestorationStage.COLORIZE:
+                if stage_key == RestorationStage.CRACK_INPAINT:
+                    current = await stage.process(current)
+                elif stage_key == RestorationStage.COLORIZE:
                     logger.info("Colorization requested: true")
                     mode = options.colorization_mode.value
                     current = await stage.process(current, colorization_mode=mode)
                     
-                    if getattr(options, "reference_monument_id", None):
+                    if getattr(options, "reference_guided_color", False) and getattr(options, "reference_monument_id", None):
                         import cv2
                         from pathlib import Path
-                        ref_path = Path(f"F:/AI Image Restoration/web-demo/public/samples/{options.reference_monument_id}.jpg")
+                        # Default reference image logic: Try from backend static/samples or fallback
+                        ref_path = Path("static/samples") / f"{options.reference_monument_id}.jpg"
+                        if not ref_path.exists():
+                            # Fallback if someone runs it from another root
+                            ref_path = Path(__file__).parent.parent.parent.parent / "web-demo/public/samples" / f"{options.reference_monument_id}.jpg"
                         if ref_path.exists():
                             try:
                                 ref_img = cv2.imread(str(ref_path))
                                 if ref_img is not None:
                                     from app.utils.color_transfer import apply_color_transfer
-                                    current = apply_color_transfer(current, ref_img)
-                                    logger.info(f"Applied reference-guided color transfer using {ref_path.name}")
+                                    blend_str = getattr(options, "reference_blend_strength", 0.3)
+                                    current = apply_color_transfer(current, ref_img, strength=blend_str)
+                                    logger.info(f"Applied reference-guided color transfer using {ref_path.name} with strength {blend_str}")
                                     warnings.append(f"Reference-guided color transfer applied using {options.reference_monument_id}")
                             except Exception as e:
                                 logger.error(f"Failed to apply color transfer: {e}")
@@ -164,28 +168,44 @@ class RestorationPipeline:
                         else:
                             logger.warning(f"Reference image not found at {ref_path}")
                     
-                    # FREE VRAM: Unload colorize model immediately to ensure BOPBTL has enough memory
                     stage.unload()
                     import torch
-                    torch.cuda.empty_cache()
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
                 elif stage_key == RestorationStage.OLD_PHOTO_REPAIR:
                     pre_bopbtl = current.copy()
-                    is_hr = options.mode == RestorationMode.ADVANCED
                     
-                    # Run BOPBTL at 1200 max_side to preserve sharpness.
-                    # It will fall back to CPU if it hits a CUDA OOM on 6GB cards.
-                    current = await stage.process(current, use_hr_mode=is_hr, max_bopbtl_size=1200)
+                    # HR mode is always False, max_side=768 by default
+                    is_hr = False
+                    current = await stage.process(current, use_hr_mode=is_hr, max_bopbtl_size=768)
                     
-                    # Automated post-BOPBTL quality checks & fix
                     from app.ml.quality_checks import check_post_bopbtl_quality, fix_post_bopbtl_artifacts
                     bopbtl_warnings = check_post_bopbtl_quality(pre_bopbtl, current)
                     if bopbtl_warnings and is_hr:
                         current = fix_post_bopbtl_artifacts(pre_bopbtl, current)
-                        logger.info("Applied automatic fix for HR mode artifacts (blended original pixels)")
+                        logger.info("Applied automatic fix for HR mode artifacts")
                     warnings.extend(bopbtl_warnings)
+                elif stage_key == RestorationStage.DENOISE:
+                    denoise_strength = getattr(options, "denoise_strength", 1.0)
+                    current = await stage.process(current, denoise_strength=denoise_strength)
                 elif stage_key == RestorationStage.UPSCALE:
-                    outscale = 4 if options.mode == RestorationMode.ADVANCED else 2
-                    current = await stage.process(current, outscale=outscale)
+                    outscale = 4 if options.mode in (RestorationMode.ADVANCED, RestorationMode.ENHANCED) else 2
+                    
+                    if options.mode == RestorationMode.ENHANCED:
+                        import asyncio
+                        provider_type = getattr(options, "generative_provider", "off").value if hasattr(getattr(options, "generative_provider", None), "value") else getattr(options, "generative_provider", "off")
+                        self.generative_enhancer.load(provider_type)
+                        enhanced, success = await asyncio.to_thread(self.generative_enhancer.process, current)
+                        self.generative_enhancer.unload()
+                        
+                        if success:
+                            current = enhanced
+                            warnings.append("AI reconstruction applied via generative model.")
+                            # We can set ai_reconstructed in the outer result, but the pipeline doesn't have an ai_reconstructed field in PipelineResult yet. Let's add it.
+                        else:
+                            current = await stage.process(current, outscale=outscale)
+                    else:
+                        current = await stage.process(current, outscale=outscale)
                 else:
                     current = await stage.process(current)
                 
@@ -195,7 +215,6 @@ class RestorationPipeline:
                     StageResult(stage=stage_key.value, processing_time_ms=elapsed_ms)
                 )
                 
-                # PRD Logging Requirement #9
                 from app.config import get_settings
                 device_str = "GPU" if get_settings().device == "cuda" else "CPU"
                 logger.info(
@@ -215,7 +234,6 @@ class RestorationPipeline:
                 )
                 warnings.append(f"{stage_key.value} failed: {e}")
                 
-                # PRD: If BOPBTL cannot initialize, fail explicitly.
                 if stage_key == RestorationStage.OLD_PHOTO_REPAIR:
                     raise RuntimeError(f"Mandatory stage BOPBTL failed: {e}") from e
 
@@ -231,7 +249,8 @@ class RestorationPipeline:
             restored=current,
             stage_results=stage_results,
             total_time_ms=total_ms,
-            warnings=warnings
+            warnings=warnings,
+            ai_reconstructed=any("AI reconstruction applied" in w for w in warnings)
         )
 
     def get_loaded_models(self) -> list[str]:

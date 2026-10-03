@@ -59,6 +59,9 @@ export interface RestoreOptions {
   denoise: boolean;
   colorize: boolean;
   face_restore: boolean;
+  generative: boolean;
+  mode?: string;
+  generative_provider?: string;
 }
 
 export interface RestoreResult {

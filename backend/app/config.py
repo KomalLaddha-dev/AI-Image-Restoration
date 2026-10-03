@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     replicate_api_token: str = ""
     google_vision_api_key: str = ""
 
+    # --- Generative Enhancement (Colab HYPIR) ---
+    colab_hypir_url: str = ""
+    colab_hypir_api_key: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]

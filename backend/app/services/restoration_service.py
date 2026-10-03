@@ -89,6 +89,7 @@ class RestorationService:
                 stages_applied=result.stage_results,
                 total_processing_time_ms=result.total_time_ms,
                 warnings=result.warnings,
+                ai_reconstructed=getattr(result, "ai_reconstructed", False),
             )
 
             return await job_manager.get_job(job_id)
