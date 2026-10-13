@@ -30,7 +30,7 @@ class RestorationService:
 
     def __init__(self, pipeline: RestorationPipeline):
         self.pipeline = pipeline
-        self.output_dir = Path(tempfile.gettempdir()) / "heritage_restore"
+        self.output_dir = Path("static") / "restore"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     async def submit_job(
