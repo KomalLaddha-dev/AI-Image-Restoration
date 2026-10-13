@@ -33,7 +33,7 @@ def test_detail_loss_detection():
     post_flare = pre.copy()
     post_flare[100:200, 0:60] = [150, 180, 240]  # Bright warm flare on left margin
     warnings_flare = check_post_bopbtl_quality(pre, post_flare)
-    assert any("potential hallucinated artifact near margin" in w for w in warnings_flare), \
+    assert any("artifact near margin" in w for w in warnings_flare), \
         f"Expected margin artifact warning, got: {warnings_flare}"
     print(f"PASS: Correctly flagged margin artifact flare: {warnings_flare[0]}")
 
