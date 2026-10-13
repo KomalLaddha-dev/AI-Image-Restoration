@@ -100,10 +100,19 @@ class ColorizeStage:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                 neutral_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
                 
-                output = self._run_ddcolor(neutral_bgr)
+                raw_color = self._run_ddcolor(neutral_bgr)
+
+                # Native LAB colorization: strictly combine DDColor predicted ab channels
+                # with the neutral input luminance (L) to prevent any sepia bleed.
+                color_lab = cv2.cvtColor(raw_color, cv2.COLOR_BGR2LAB)
+                if color_lab.shape[:2] != gray.shape[:2]:
+                    color_lab = cv2.resize(color_lab, (gray.shape[1], gray.shape[0]), interpolation=cv2.INTER_LINEAR)
+                color_lab[:, :, 0] = gray
+                output = cv2.cvtColor(color_lab, cv2.COLOR_LAB2BGR)
+
                 elapsed = (time.perf_counter() - start) * 1000
                 logger.info(f"Colorize: mode={colorization_mode}")
-                logger.info("DDColor: EXECUTED")
+                logger.info("DDColor: EXECUTED (native LAB colorization with neutral L)")
                 return output
             except Exception as e:
                 logger.error(f"DDColor inference failed: {e}")

@@ -37,30 +37,28 @@ def add_blur(image, ksize=5):
     """Applies Gaussian blur to the image."""
     return cv2.GaussianBlur(image, (ksize, ksize), 0)
 
-def add_scratches(image, num_scratches=10, max_length=100, max_thickness=3):
-    """Adds random white/light gray scratches."""
+def add_scratches(image, num_scratches=15, max_length=120, max_thickness=3):
+    """Adds random white/light gray scratches and generates the binary scratch mask."""
     out = np.copy(image)
     h, w = image.shape[:2]
+    mask = np.zeros((h, w), dtype=np.uint8)
     
     for _ in range(num_scratches):
         x1, y1 = random.randint(0, w), random.randint(0, h)
-        
-        # Random angle and length
         angle = random.uniform(0, 2 * np.pi)
-        length = random.randint(10, max_length)
-        
+        length = random.randint(15, max_length)
         x2 = int(x1 + length * np.cos(angle))
         y2 = int(y1 + length * np.sin(angle))
-        
         thickness = random.randint(1, max_thickness)
-        color = random.randint(200, 255) # Light scratch
+        color = random.randint(210, 255)
         
         cv2.line(out, (x1, y1), (x2, y2), (color, color, color), thickness)
+        cv2.line(mask, (x1, y1), (x2, y2), 255, thickness + 2)
         
-    return out
+    return out, mask
 
-def synthesize_degradation(image_path, output_path):
-    """Applies a full degradation pipeline to an image."""
+def synthesize_degradation(image_path: str, output_path: str, mask_output_path: str | None = None) -> np.ndarray:
+    """Applies a full degradation pipeline (sepia, blur, noise, scratches) and saves output."""
     img = cv2.imread(image_path)
     if img is None:
         raise ValueError(f"Could not read image: {image_path}")
@@ -72,12 +70,15 @@ def synthesize_degradation(image_path, output_path):
     img = add_blur(img, ksize=random.choice([3, 5, 7]))
     
     # 3. Add Noise
-    img = add_noise(img, severity=random.uniform(0.01, 0.03))
+    img = add_noise(img, severity=random.uniform(0.01, 0.025))
     
-    # 4. Add Scratches
-    img = add_scratches(img, num_scratches=random.randint(5, 20))
+    # 4. Add Scratches and generate mask
+    img, scratch_mask = add_scratches(img, num_scratches=random.randint(10, 25))
     
     cv2.imwrite(output_path, img)
+    if mask_output_path:
+        cv2.imwrite(mask_output_path, scratch_mask)
+        
     return img
 
 if __name__ == "__main__":
@@ -85,7 +86,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Synthetically degrade an image.")
     parser.add_argument("input", help="Path to input image")
     parser.add_argument("output", help="Path to output degraded image")
+    parser.add_argument("--mask", default=None, help="Optional path to output scratch mask")
     args = parser.parse_args()
     
-    synthesize_degradation(args.input, args.output)
+    synthesize_degradation(args.input, args.output, args.mask)
     print(f"Degraded image saved to {args.output}")

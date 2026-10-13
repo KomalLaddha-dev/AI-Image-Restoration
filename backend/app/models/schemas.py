@@ -61,6 +61,7 @@ class RestoreOptions(BaseModel):
     reference_guided_color: bool = Field(default=False, description="Apply Reinhard transfer from reference")
     reference_blend_strength: float = Field(default=0.3, ge=0.0, le=1.0, description="Blend strength for Reinhard transfer")
     crack_inpaint: bool = Field(default=True, description="Enable scratch/crack inpainting before old_photo_repair")
+    max_side: int = Field(default=768, ge=256, le=2048, description="Maximum image dimension for restoration pipeline (default 768)")
     mode: RestorationMode = Field(
         default=RestorationMode.STANDARD,
         description="Standard, portrait, colorize, advanced, or enhanced.",

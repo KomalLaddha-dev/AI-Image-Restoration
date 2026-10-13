@@ -101,7 +101,12 @@ class CrackInpaintStage:
         mask_dilated = cv2.dilate(mask_thresh, kernel, iterations=1)
         
         # Coverage guard
-        coverage = np.sum(mask_dilated > 0) / (h_orig * w_orig)
+        nonzero_count = np.sum(mask_dilated > 0)
+        if nonzero_count == 0:
+            logger.info("Crack inpaint: no scratches detected, skipping inpainting.")
+            return img
+
+        coverage = nonzero_count / (h_orig * w_orig)
         logger.info(f"Crack mask coverage: {coverage*100:.2f}%")
         
         if coverage > 0.15:

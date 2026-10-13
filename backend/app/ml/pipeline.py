@@ -91,10 +91,11 @@ class RestorationPipeline:
         original = image.copy()
         current = image.copy()
 
-        current, scale = resize_if_needed(current, max_side=2048)
+        max_side = getattr(options, "max_side", 768) or 768
+        current, scale = resize_if_needed(current, max_side=max_side)
         if scale < 1.0:
-            logger.info(f"Input image resized by {scale:.2f}x before pipeline")
-            warnings.append(f"Input image resized to avoid OOM.")
+            logger.info(f"Input image resized to max_side={max_side} by {scale:.2f}x before pipeline")
+            warnings.append(f"Input image resized to max_side={max_side} to avoid OOM.")
 
         if getattr(options, "crop_borders", False):
             pre_crop_shape = current.shape
@@ -145,7 +146,12 @@ class RestorationPipeline:
                     mode = options.colorization_mode.value
                     current = await stage.process(current, colorization_mode=mode)
                     
-                    if getattr(options, "reference_guided_color", False) and getattr(options, "reference_monument_id", None):
+                    # Reinhard color transfer is OFF by default; never apply when reference is ground truth
+                    if (
+                        getattr(options, "reference_guided_color", False)
+                        and getattr(options, "reference_monument_id", None)
+                        and not getattr(options, "is_eval_ground_truth", False)
+                    ):
                         import cv2
                         from pathlib import Path
                         # Default reference image logic: Try from backend static/samples or fallback
@@ -177,7 +183,7 @@ class RestorationPipeline:
                     
                     # HR mode is always False, max_side=768 by default
                     is_hr = False
-                    current = await stage.process(current, use_hr_mode=is_hr, max_bopbtl_size=768)
+                    current = await stage.process(current, use_hr_mode=is_hr, max_bopbtl_size=max_side)
                     
                     from app.ml.quality_checks import check_post_bopbtl_quality, fix_post_bopbtl_artifacts
                     bopbtl_warnings = check_post_bopbtl_quality(pre_bopbtl, current)
@@ -186,7 +192,7 @@ class RestorationPipeline:
                         logger.info("Applied automatic fix for HR mode artifacts")
                     warnings.extend(bopbtl_warnings)
                 elif stage_key == RestorationStage.DENOISE:
-                    denoise_strength = getattr(options, "denoise_strength", 1.0)
+                    denoise_strength = getattr(options, "denoise_strength", 0.0)
                     current = await stage.process(current, denoise_strength=denoise_strength)
                 elif stage_key == RestorationStage.UPSCALE:
                     outscale = 4 if options.mode in (RestorationMode.ADVANCED, RestorationMode.ENHANCED) else 2
