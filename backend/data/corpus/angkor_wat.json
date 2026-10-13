@@ -1,0 +1,41 @@
+{
+  "monument_id": "angkor_wat",
+  "name": "Angkor Wat",
+  "chunks": [
+    {
+      "text": "Angkor Wat (; Khmer: អង្គរវត្ត, 'City/Capital of Temples') is a Theravada Buddhist temple complex, originally built as a Vaishnava Hindu temple, in Siem Reap, Cambodia. It is the largest religious complex in the world. Located on a site measuring 162.6 hectares (1.6 km2; 401.8 acres) within the medieval capital of Angkor, it was constructed between 1113 and 1150 CE during the reign of the Khmer king Suryavarman II as a Hindu temple dedicated to Vishnu. From the late 13th century onward, the complex was gradually transformed into a Buddhist temple as Khmer kings adopted Buddhism. Angkor Wat has remained a Buddhist monastery and an active center of Buddhist worship into the present day. It is noted for its monumental scale, extensive bas-reliefs, and an architectural unity characteristic of Khmer architecture. Unlike most Angkorian temples, it is oriented toward the west. It is a symbol of Cambodia and appears on the Cambodian national flag.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Angkor_Wat",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:52.637755+00:00"
+    },
+    {
+      "text": "The temple was commissioned by Suryavarman II in Yaśodharapura, the capital of the Khmer Empire, as a state temple and is generally considered to have been intended as his mausoleum. Its architectural design combines the temple-mountain and galleried temple forms characteristic of Khmer architecture. The overall layout is commonly interpreted as a symbolic representation of Mount Meru, a cosmological concept shared by both Hindu and Buddhist traditions. The complex is surrounded by a broad moat and enclosed by an outer wall, within which three progressively elevated galleries rise toward a central quincunx of towers.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Angkor_Wat",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:52.637755+00:00"
+    },
+    {
+      "text": "From the late 13th century onward, Angkor Wat became predominantly associated with Theravāda Buddhism. It was adapted for Buddhist worship and has remained in continuous religious use, a factor that contributed to its preservation and survival as a major religious, cultural, and national symbol of Cambodia.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Angkor_Wat",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:52.637755+00:00"
+    },
+    {
+      "text": "The temple complex fell into disuse before restoration work began on it in the 20th century, with various international agencies involved in the project. Restoration was coordinated by the International Coordinating Committee for the Safeguarding and Development of the Historic Site of Angkor (ICC-Angkor), established in 1993 under UNESCO. Major contributors included France (via the École française d'Extrême-Orient), Japan (JASA), India (Archaeological Survey of India), Germany (GACP), the United States (World Monuments Fund), South Korea, China, and Italy.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Angkor_Wat",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:52.637755+00:00"
+    },
+    {
+      "text": "The temple is known for its architecture and its extensive bas-reliefs and devatas adorning its walls. The Angkor area was designated as a UNESCO World Heritage Site in 1992. Angkor Wat is a major tourist attraction and attracts more than 2.5 million visitors every year.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Angkor_Wat",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:52.637755+00:00"
+    }
+  ]
+}

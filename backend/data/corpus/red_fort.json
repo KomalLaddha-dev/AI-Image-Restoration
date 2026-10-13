@@ -1,0 +1,41 @@
+{
+  "monument_id": "red_fort",
+  "name": "Red Fort",
+  "chunks": [
+    {
+      "text": "The Red Fort (Lal Qila in Hindi; Hindi pronunciation: [laːl 'qɪlaː]) is a historic Mughal fort located in the Old Delhi area of Delhi, India. Serving as the main residence of the Mughal emperors, it was commissioned by Emperor Shah Jahan on the 12th of May 1639; the fort was constructed following his decision to shift the Mughal capital from Agra to Delhi. Originally adorned in red and white, the fort's design is attributed to Ustad Ahmad Lahori, the architect of the Taj Mahal. The Red Fort is a prominent example of Mughal architecture from Shah Jahan's reign, combining Persian and Indian architectural styles.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Red_Fort",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:41.771799+00:00"
+    },
+    {
+      "text": "During the invasion by Nadir Shah of the Afsharid Empire in 1739, the fort was plundered and stripped of its artwork and jewels. Following the Indian Rebellion of 1857, many of its marble structures were demolished by the British, although the defensive walls remained largely intact. The fort was later repurposed as a military garrison.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Red_Fort",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:41.771799+00:00"
+    },
+    {
+      "text": "On 15 August 1947, the first Prime Minister of India, Jawaharlal Nehru, hoisted the Indian flag above the Lahori Gate, the main entrance of the Red Fort. Since then, the Prime Minister of India has ceremonially raised the national tricolour at the main gate each year on Independence Day, then delivering a nationally broadcast address from its ramparts.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Red_Fort",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:41.771799+00:00"
+    },
+    {
+      "text": "The name Red Fort is a translation of the Hindustani Lāl Qila (Hindi: लाल क़िला, Urdu: لال قلعہ), derived from the fort's red sandstone walls. Lal means \"red\" in Hindi, while Qila comes from Arabic, meaning \"fortress.\" Originally known as the \"Blessed Fort\" (Qila-i-Mubārak), it served as the residence of the imperial family. The term Lāl Qila is also used to refer to the Agra Fort.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Red_Fort",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:41.771799+00:00"
+    },
+    {
+      "text": "Emperor Shah Jahan commissioned the construction of the Red Fort on 12 May 1638, following his decision to shift his capital from Agra to Delhi. The design of the Red Fort is attributed to the architect Ustad Ahmad Lahori, renowned for his work on the Taj Mahal. It straddles the Yamuna River, which once fed the moats surrounding most of the walls. Construction began in the sacred Islamic month of Muharram, on 13 May 1638. Supervised by Shah Jahan, it was completed on 6 April 1648. The fort was originally adorned in red and white. Unlike other Mughal forts, the Red Fort's boundary walls are asymmetrical to contain and subsume the older Salimgarh Fort. The fortress-palace served as the centrepiece of Shahjahanabad, the city now known as Old Delhi. Shah Jahan's successor, Emperor Aurangzeb, enhanced the Red Fort by adding the Moti Masjid (Pearl Mosque) to the emperor's private quarters. He also constructed barbicans in front of the two main gates to create a more circuitous approach to the palace.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Red_Fort",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:41.771799+00:00"
+    }
+  ]
+}

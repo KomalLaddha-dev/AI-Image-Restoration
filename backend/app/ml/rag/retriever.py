@@ -16,11 +16,12 @@ from app.ml.rag.embedder import Embedder
 
 @dataclass
 class Chunk:
-    """A single text chunk with metadata."""
+    """A single text chunk with provenance metadata."""
     text: str
     monument_id: str
     source: str
     source_url: str | None = None
+    verified: bool = True
 
 
 class Retriever:
@@ -34,44 +35,47 @@ class Retriever:
 
     def load(self, corpus_dir: str | Path) -> None:
         """
-        Build FAISS index from corpus files in the given directory.
-
-        Expected file format per monument (JSON):
-        {
-            "monument_id": "taj_mahal",
-            "chunks": [
-                {"text": "...", "source": "Wikipedia", "source_url": "https://..."}
-            ]
-        }
+        Build FAISS index from verified corpus files in the given directory.
+        Strictly excludes any chunks with verified: False.
         """
         corpus_path = Path(corpus_dir)
         if not corpus_path.exists():
             logger.warning(f"Corpus directory not found: {corpus_path}")
             return
 
-        # Load all chunks from corpus files
         all_chunks = []
+        excluded_unverified = 0
+
         for file_path in sorted(corpus_path.glob("*.json")):
             try:
                 with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
                 monument_id = data.get("monument_id", file_path.stem)
                 for chunk_data in data.get("chunks", []):
+                    # Exclude unverified chunks from RAG answers
+                    if not chunk_data.get("verified", True):
+                        excluded_unverified += 1
+                        continue
+
                     all_chunks.append(Chunk(
                         text=chunk_data["text"],
                         monument_id=monument_id,
                         source=chunk_data.get("source", "Unknown"),
                         source_url=chunk_data.get("source_url"),
+                        verified=True,
                     ))
             except Exception as e:
                 logger.error(f"Failed to load corpus file {file_path}: {e}")
 
         if not all_chunks:
-            logger.warning("No chunks loaded from corpus")
+            logger.warning("No verified chunks loaded from corpus")
             return
 
         self._chunks = all_chunks
-        logger.info(f"Loaded {len(self._chunks)} chunks from {corpus_path}")
+        logger.info(
+            f"Loaded {len(self._chunks)} verified chunks from {corpus_path} "
+            f"(excluded {excluded_unverified} unverified chunks)"
+        )
 
         # Build FAISS index
         self._build_index()

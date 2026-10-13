@@ -1,0 +1,41 @@
+{
+  "monument_id": "machu_picchu",
+  "name": "Machu Picchu",
+  "chunks": [
+    {
+      "text": "Machu Picchu is a 15th-century Inca citadel located in the Eastern Cordillera of southern  Peru  on a mountain ridge at  2,430 meters (7,970 ft). It is situated in the Machupicchu District of Urubamba Province about 80 kilometers (50 miles) northwest of Cusco, above the Sacred Valley and along the Urubamba River, which forms a deep canyon with a subtropical mountain climate.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Machu_Picchu",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:49.899566+00:00"
+    },
+    {
+      "text": "Often referred to as the \"Lost City of the Incas\", Machu Picchu is one of the most iconic symbols of the Inca civilization and a major archaeological site in the Americas. Estimated to be built around 1450, it is believed to have served as an estate for the Inca emperor Pachacuti, though no contemporary written records exist to confirm this. The site was abandoned roughly a century later, likely during the Spanish conquest. Modern radiocarbon dating places its occupation between c. 1420 and 1530.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Machu_Picchu",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:49.899566+00:00"
+    },
+    {
+      "text": "Machu Picchu was constructed in the classical Inca style, featuring finely crafted dry-stone walls. Notable structures include the Temple of the Sun, the Temple of the Three Windows, and the Intihuatana ritual stone. Although the site was known locally and reached in the early 20th century by the Peruvian explorer Agustín Lizárraga, it was brought to international attention in 1911 by the American historian Hiram Bingham III. The original Inca name of the site may have been Huayna Picchu, after the mountain on which part of the complex stands.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Machu_Picchu",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:49.899566+00:00"
+    },
+    {
+      "text": "Designated a National Historic Sanctuary by Peru in 1981 and a UNESCO World Heritage Site in 1983, Machu Picchu was also named one of the New Seven Wonders of the World in 2007. As of 2025, the site receives over 1.5 million visitors annually, making it Peru's most visited international tourist destination.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Machu_Picchu",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:49.899566+00:00"
+    },
+    {
+      "text": "The site is on a narrow saddle between two mountain peaks, Machu Picchu and Huayna Picchu. In the Quechua language, machu means 'old' or 'old person' and wayna (spelled huayna in standard Spanish orthography) means 'young', while pikchu refers to a 'summit', 'peak', or 'pyramid'. Thus, the name of the site is often translated as 'old mountain' or 'old peak'.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Machu_Picchu",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:49.899566+00:00"
+    }
+  ]
+}

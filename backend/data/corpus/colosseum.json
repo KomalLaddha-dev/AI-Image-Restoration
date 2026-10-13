@@ -3,24 +3,39 @@
   "name": "Colosseum",
   "chunks": [
     {
-      "text": "The Colosseum, also known as the Flavian Amphitheatre, is an oval amphitheatre in the centre of Rome, Italy. Built of travertine limestone, tuff, and brick-faced concrete, it was the largest amphitheatre ever built at the time and held between 50,000 and 80,000 spectators. Construction began under Emperor Vespasian in 72 CE and was completed in 80 CE under his son and successor Titus.",
-      "source": "Wikipedia — Colosseum",
-      "source_url": "https://en.wikipedia.org/wiki/Colosseum"
+      "text": "The Colosseum ( KOL-ə-SEE-əm; Italian: Colosseo [kolosˈsɛːo]) is an elliptical amphitheatre in the centre of the city of Rome, Italy, just east of the Roman Forum. It is the largest ancient amphitheatre ever built, and is the largest standing amphitheatre in the world.  Construction began under the Emperor Vespasian (r. 69–79 AD) in 72 and was completed in AD 80 under his successor and heir, Titus (r. 79–81). Further modifications were made during the reign of Domitian (r. 81–96). The three emperors who were patrons of the work are known as the Flavian dynasty, and the amphitheatre was named the Flavian Amphitheatre (Latin: Amphitheatrum Flavium; Italian: Anfiteatro Flavio [aɱfiteˈaːtro ˈflaːvjo]) by later classicists and archaeologists for its association with their family name (Flavius).",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Colosseum",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:44.738019+00:00"
     },
     {
-      "text": "The Colosseum was used for gladiatorial contests and public spectacles including animal hunts, executions, re-enactments of famous battles, and dramas based on Roman mythology. The building ceased to be used for entertainment in the early medieval era. It was later reused for housing, workshops, quarters for a religious order, a fortress, a quarry, and a Christian shrine.",
-      "source": "Wikipedia — Colosseum",
-      "source_url": "https://en.wikipedia.org/wiki/Colosseum"
+      "text": "The Colosseum is built of travertine, Roman concrete (foundations, corridors vaults and secondary brick walls), and tuff (volcanic rock). It could hold an estimated 50,000 to 80,000 spectators at various points in its history, having an average audience of some 65,000; it was used for gladiatorial contests and public spectacles including animal hunts, executions, re-enactments of famous battles, dramas based on Roman mythology, and briefly mock sea battles. The building ceased to be used for entertainment in the early medieval era. It was later reused for such purposes as housing, workshops, quarters for a religious order, a fortress, a quarry, and a Christian shrine.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Colosseum",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:44.738019+00:00"
     },
     {
-      "text": "The Colosseum is an iconic symbol of Imperial Rome and was listed as a UNESCO World Heritage Site in 1980. In 2007 it was named one of the New 7 Wonders of the World. Despite its ruined state due to earthquakes and stone-robbers, the Colosseum remains a popular tourist attraction in Rome with millions of visitors annually. It is also the most iconic monument of Rome and Italy.",
-      "source": "UNESCO World Heritage Centre",
-      "source_url": "https://whc.unesco.org/en/list/91"
+      "text": "Although substantially ruined by earthquakes and stone robbers taking spolia, the Colosseum is still a renowned symbol of Imperial Rome and was listed as one of the New 7 Wonders of the World. It is one of Rome's most popular tourist attractions and each Good Friday the Pope leads a torchlit Catholic \"Way of the Cross\" procession that starts in the area around the Colosseum. The Colosseum is depicted on the Italian version of the 5 euro cent coin.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Colosseum",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:44.738019+00:00"
     },
     {
-      "text": "The Colosseum's architecture introduced sophisticated engineering solutions including a complex system of vaults, an awning system (velarium) to shade spectators, and a hypogeum — an elaborate underground structure of tunnels and cages from which animals and scenery could be hoisted into the arena via 80 vertical shafts. The building's elliptical shape measures 189 metres long, 156 metres wide, and 48.5 metres tall.",
-      "source": "Italian Ministry of Cultural Heritage",
-      "source_url": "https://www.beniculturali.it/"
+      "text": "Originally, the building's Latin name was simply amphitheatrum, 'amphitheatre'. Though the modern name Flavian Amphitheatre (Latin: Amphitheatrum Flavium) is often used, there is no evidence it was used in classical antiquity. This name refers to the patronage of the Flavian dynasty, during whose reigns the building was constructed, but the structure is better known as the Colosseum. In antiquity, Romans may have referred to the Colosseum by the unofficial name Amphitheatrum Caesareum (with Caesareum an adjective pertaining to the title Caesar), but this name may have been strictly poetic as it was not exclusive to the Colosseum; Vespasian and Titus, builders of the Colosseum, also constructed a Flavian Amphitheatre in Puteoli (modern Pozzuoli).",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Colosseum",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:44.738019+00:00"
+    },
+    {
+      "text": "The name Colosseum is believed to be derived from a colossal statue of Nero on the model of the Colossus of Rhodes. The giant bronze sculpture of Nero as a solar deity was moved to its position beside the amphitheatre by the emperor Hadrian (r. 117–138). The word colosseum is a neuter Latin noun formed from the adjective colosseus, meaning \"gigantic\" or \"colossean\". By the year 1000 the Latin name \"Colosseum\" had been coined to refer to the amphitheatre from the nearby \"Colossus Solis\".",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Colosseum",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:44.738019+00:00"
     }
   ]
 }

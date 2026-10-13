@@ -1,0 +1,41 @@
+{
+  "monument_id": "hawa_mahal",
+  "name": "Hawa Mahal",
+  "chunks": [
+    {
+      "text": "The Hawa Mahal is a palace in the city of Jaipur, Rajasthan, India. Built from red and pink sandstone, it is on the edge of the City Palace, Jaipur, and extends to the Zenana, or women's chambers.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Hawa_Mahal",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:51.099348+00:00"
+    },
+    {
+      "text": "Hawa Mahal, also known as the \"Palace of Winds\", was built in 1799 by Maharaja Sawai Pratap Singh. The palace is known for its honeycomb-like façade, featuring numerous small windows and balconies.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Hawa_Mahal",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:51.099348+00:00"
+    },
+    {
+      "text": "Hawa Mahal derives its name from its 953 windows, known as jharokhas, which are arranged in a honeycomb-like pattern. These openings facilitate natural ventilation, helping to keep the interior of the palace cool during the summers.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Hawa_Mahal",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:51.099348+00:00"
+    },
+    {
+      "text": "The structure was built in 1799 by the Rajput Emperor Maharaja Sawai Pratap Singh, grandson of Maharaja Sawai Jai Singh, the founder of the city of  Jaipur of Rajasthan. He was so inspired by the unique structure of Khetri Mahal that he built this grand and historical palace.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Hawa_Mahal",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:51.099348+00:00"
+    },
+    {
+      "text": "It was designed by Lal Chand Ustad. Its five-floor exterior is akin to a honeycomb with its 953 small windows called Jharokhas decorated with intricate latticework.  The original intent of the lattice design was to allow royal ladies to observe everyday life and festivals celebrated in the street below without being seen.  This architectural feature also allowed cool air from the Venturi effect to pass through, thus making the whole area more pleasant during the high temperatures in summer.  Many people see the Hawa Mahal from the street view and think it is the front of the palace, but it is the back.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Hawa_Mahal",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:51.099348+00:00"
+    }
+  ]
+}

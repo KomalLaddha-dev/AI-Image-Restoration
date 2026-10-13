@@ -3,19 +3,39 @@
   "name": "Pyramids of Giza",
   "chunks": [
     {
-      "text": "The Giza pyramid complex, on the outskirts of Cairo, Egypt, consists of the Great Pyramid of Giza (Pyramid of Khufu), the Pyramid of Khafre, and the Pyramid of Menkaure, along with their associated pyramid complexes and the Great Sphinx of Giza. All were built during the Fourth Dynasty of the Old Kingdom of Ancient Egypt, between roughly 2600 and 2500 BCE. The Great Pyramid is the oldest and largest of the three pyramids and is the oldest of the Seven Wonders of the Ancient World, and the only one to remain largely intact.",
-      "source": "Wikipedia — Giza pyramid complex",
-      "source_url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex"
+      "text": "The Giza pyramid complex (also called the Giza necropolis) in Egypt is home to the Great Pyramid, the pyramid of Khafre, and the pyramid of Menkaure, along with their associated pyramid complexes and the Great Sphinx. All were built during the Fourth Dynasty of the Old Kingdom of ancient Egypt, between c. 2600 – c. 2500 BC. The site also includes several temples, cemeteries, and the remains of a workers' village.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:47.952777+00:00"
     },
     {
-      "text": "The Great Pyramid of Khufu, originally standing at 146.5 metres (481 feet), was the tallest man-made structure in the world for more than 3,800 years, until the completion of Lincoln Cathedral in England around 1311 CE. It is estimated to have been built from approximately 2.3 million limestone blocks, each weighing an average of 2.5 tonnes. The precision of the pyramid's construction — its base is level to within just 2.1 centimetres across 230 metres — continues to astound engineers today.",
-      "source": "Wikipedia — Great Pyramid of Giza",
-      "source_url": "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
+      "text": "The site is at the edge of the Western Desert, approximately 9 km (5.6 mi) west of the Nile River in the city of Giza, and about 13 km (8.1 mi) southwest of the city centre of Cairo. It forms the northernmost part of the 16,000 ha (160 km2; 62 sq mi) Pyramid Fields of the Memphis and its Necropolis UNESCO World Heritage Site, inscribed in 1979. The pyramid fields include the Abusir, Saqqara, and Dahshur pyramid complexes, which were all built in the vicinity of Egypt's ancient capital of Memphis. Further Old Kingdom pyramid fields were located at the sites Abu Rawash, Zawyet El Aryan, and Meidum. Most of the limestone used to build the pyramids originates from the underlying Mokattam Formation.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:47.952777+00:00"
     },
     {
-      "text": "The pyramid complex at Giza was designated a UNESCO World Heritage Site in 1979 as part of 'Memphis and its Necropolis — the Pyramid Fields from Giza to Dahshur'. The site description notes that the funerary monuments of this ancient capital of Egypt 'bear witness to the civilisation of the pharaohs' and represent 'one of the most prodigious achievements of the ancient world'. Tourism to the pyramids has been a significant part of Egypt's economy for centuries.",
-      "source": "UNESCO World Heritage Centre",
-      "source_url": "https://whc.unesco.org/en/list/86"
+      "text": "The Great Pyramid and the Pyramid of Khafre are the largest pyramids built in ancient Egypt, and they have historically been common as emblems of Ancient Egypt in the Western imagination. They were popularised in Hellenistic times, when the Great Pyramid was listed by Antipater of Sidon as one of the Seven Wonders of the World. It is by far the oldest of the Ancient Wonders and the only one still in existence.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:47.952777+00:00"
+    },
+    {
+      "text": "The earliest settlement of the Giza plateau predates the pyramid complexes. Four jars from the Maadi culture were found at the foot of the Great Pyramid, likely from a disturbed earlier settlement. Further Maadi settlement near the site was uncovered during work on the Greater Cairo Wastewater Project. Recent reassessment of the radiocarbon dating puts the Maadi culture's eponymous settlement to c. 3800 – c. 3400 BC, which is also the likely maximum possible range for the Giza remains.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:47.952777+00:00"
+    },
+    {
+      "text": "The Giza pyramid complex consists of the Great Pyramid (also known as the Pyramid of Cheops or Khufu and constructed c. 2580 – c. 2560 BC), the slightly smaller Pyramid of Khafre (or Chephren) a few hundred metres to the south-west, and the relatively modest-sized Pyramid of Menkaure (or Mykerinos) a few hundred metres farther south-west. The Great Sphinx lies on the east side of the complex. Consensus among Egyptologists is that the head of the Great Sphinx is that of Khafre. Along with these major monuments are a number of smaller satellite edifices, known as \"queens\" pyramids, causeways, and temples. Besides the archaeological structures, the ancient landscape has also been investigated.",
+      "source": "Wikipedia (CC BY-SA)",
+      "source_url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex",
+      "verified": true,
+      "fetched_at": "2026-10-13T19:00:47.952777+00:00"
     }
   ]
 }

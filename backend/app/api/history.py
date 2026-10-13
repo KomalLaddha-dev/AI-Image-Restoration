@@ -22,6 +22,8 @@ def _load_monuments() -> None:
     """Load monument metadata from data/monuments.json."""
     global _monument_metadata
     data_path = Path("data") / "monuments.json"
+    if not data_path.exists():
+        data_path = Path(__file__).resolve().parent.parent.parent / "data" / "monuments.json"
     if data_path.exists():
         with open(data_path, encoding="utf-8") as f:
             monuments = json.load(f)

@@ -50,7 +50,18 @@ def get_identification_service() -> IdentificationService:
 
 
 def get_rag_components() -> tuple[Retriever, Generator]:
-    assert _retriever is not None and _generator is not None, "RAG not initialized"
+    global _retriever, _generator
+    if _retriever is None or _generator is None:
+        embedder = Embedder()
+        _retriever = Retriever(embedder)
+        _generator = Generator()
+        corpus_dir = Path("data") / "corpus"
+        if not corpus_dir.exists():
+            corpus_dir = Path(__file__).resolve().parent.parent / "data" / "corpus"
+        if corpus_dir.exists():
+            _retriever.load(corpus_dir)
+        else:
+            logger.warning(f"Corpus directory not found: {corpus_dir}")
     return _retriever, _generator
 
 
@@ -93,6 +104,8 @@ async def lifespan(app: FastAPI):
 
     # Load corpus if available
     corpus_dir = Path("data") / "corpus"
+    if not corpus_dir.exists():
+        corpus_dir = Path(__file__).resolve().parent.parent / "data" / "corpus"
     if corpus_dir.exists():
         _retriever.load(corpus_dir)
     else:
