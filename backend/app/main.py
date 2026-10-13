@@ -42,7 +42,10 @@ def get_restoration_service() -> RestorationService:
 
 
 def get_identification_service() -> IdentificationService:
-    assert _identification_service is not None, "Identification service not initialized"
+    global _identification_service
+    if _identification_service is None:
+        _identification_service = IdentificationService()
+        _identification_service.load()
     return _identification_service
 
 
