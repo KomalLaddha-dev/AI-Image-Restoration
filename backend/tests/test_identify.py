@@ -29,8 +29,7 @@ def service():
 
 @pytest.fixture
 def client():
-    with TestClient(app) as c:
-        yield c
+    return TestClient(app, raise_server_exceptions=True)
 
 
 @pytest.mark.asyncio
@@ -147,3 +146,21 @@ def test_api_endpoint_identify_ood(client):
     assert data["recognized"] is False
     assert data["confidence"] < 0.60
     assert "suggestions" in data
+
+
+def test_api_endpoint_identify_and_inform(client):
+    img_path = SAMPLES_DIR / "taj_mahal.jpg"
+    with open(img_path, "rb") as f:
+        response = client.post(
+            "/api/v1/identify-and-inform",
+            files={"file": ("taj_mahal.jpg", f, "image/jpeg")},
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "identification" in data
+    assert data["identification"]["recognized"] is True
+    assert data["identification"]["monument_id"] == "taj_mahal"
+    assert "history" in data
+    if data["history"]:
+        assert data["history"]["monument_id"] == "taj_mahal"
