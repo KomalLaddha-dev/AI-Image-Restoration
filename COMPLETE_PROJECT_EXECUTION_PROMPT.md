@@ -5,22 +5,12 @@
 
 ---
 
-## 🎯 MISSION BRIEF & SYSTEM CONTEXT
+## 🎯 GLOBAL RULES (STRICT CONSTRAINTS)
 
-You are a Senior Full-Stack AI Engineer and Computer Vision Specialist. Your task is to bring the **Heritage Restore** project to 100% completion with a production-grade Web application and FastAPI backend. (Mobile app is explicitly out of scope).
-
-The architecture comprises two tiers beneath the web client application:
-1. **Restoration Pipeline**: 5-stage sequential tensor reconstruction (`BOPBTL` Old Photo Repair → `DDColor` Colorize → `NAFNet` Denoise/Deblur → `GFPGAN` Face Restore → `Real-ESRGAN` 4x Upscale).
-2. **Dual-Intelligence Knowledge Layer**:
-   - **Left Part (Identification)**: Landmark / Monument computer vision recognition from user-uploaded archival or modern photos.
-   - **Right Part (Historical Retrieval)**: Grounded RAG (FAISS + all-MiniLM-L6-v2 + Groq Llama 3.3 70B) retrieving strictly cited provenance from curated corpus archives.
-
-Currently, the Restoration Pipeline and Web Demo foundations are laid, but:
-- Monument Identification is running on a hardcoded Taj Mahal mock in `backend/app/services/identification_service.py`.
-- RAG Corpus only has 3 monuments populated (`taj_mahal`, `colosseum`, `pyramids_giza`).
-- Restoration Pipeline has known color/texture issues (Reinhard color grading bleed and NAFNet over-smoothing).
-
-Follow the step-by-step roadmap below to complete the entire codebase.
+1. **One Phase Per Session**: Work strictly ONE phase per session. After each phase: create a conventional git commit, then **STOP and report**. Do not start the next phase until instructed.
+2. **Real Verification Only**: "Verified" strictly means running the command and pasting the actual stdout/stderr output. Never fabricate, estimate, or claim a metric, test pass, or fix without measured output. If a target is missed, report the real measured number and state that it was missed.
+3. **No Hallucinated Citations/URLs**: Never write citations, URLs, or source names from memory. Anything added to the corpus must originate from a network page actually fetched during execution.
+4. **Scope Exclusions**: Mobile App (React Native/Expo) is completely out of scope. Focus 100% on the Web Application and FastAPI backend.
 
 ---
 
@@ -30,176 +20,115 @@ Follow the step-by-step roadmap below to complete the entire codebase.
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        COMPLETION ROADMAP                              │
 │                                                                        │
-│  Phase 1: Monument Identification Engine ("The Left Part")             │
-│  Phase 2: RAG Corpus Expansion & Provenance ("The Right Part")         │
-│  Phase 3: Restoration Pipeline Hardening & Quality Fixes               │
-│  Phase 4: API & Storage Hardening (Local + Cloudinary Failover)        │
-│  Phase 5: Cinematic Web Frontend (Awwwards-Level Polish)               │
-│  Phase 6: Evaluation Suite, Tests, Docker & Documentation              │
+│  Phase 1: CLIP Foundation Monument Identification ("The Left Part")     │
+│  Phase 2: Verified RAG Corpus & Grounded Provenance ("The Right Part") │
+│  Phase 3: Restoration Pipeline Overhaul & Quality Fixes                │
+│  Phase 4: API & Hybrid Storage Hardening (Local + Cloudinary)          │
+│  Phase 5: Cinematic Web Frontend & Mobile-First PWA Polish             │
+│  Phase 6: Measured Evaluation Harness & Final Reporting                │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### PHASE 1: MONUMENT IDENTIFICATION ENGINE ("THE LEFT PART")
+### PHASE 1: CLIP FOUNDATION MONUMENT IDENTIFICATION ("THE LEFT PART")
 
-#### 1.1 Create `backend/app/ml/classifier/monument_classifier.py`
-Build a production-grade, two-tier visual recognition engine:
-- **Tier 1 (ONNX Fast-Path)**:
-  - Load `backend/models/monument_classifier.onnx` using `onnxruntime.InferenceSession`.
-  - Input: `(1, 3, 224, 224)` normalized via ImageNet mean `[0.485, 0.456, 0.406]` and std `[0.229, 0.224, 0.225]`.
-  - Output: Softmax distribution over classes defined in `backend/models/labels.json`.
-- **Tier 2 (Foundation / Visual Embedding Fallback)**:
-  - If ONNX weights are not present or confidence is low, extract visual features using `sentence-transformers/clip-ViT-B-32` or pre-computed reference image embeddings from canonical monument samples (`web-demo/public/samples/`).
-  - Calculate cosine similarity against monument gallery vectors.
-- **Preprocessing for Historical Photographs**:
-  - Implement photometric normalization: if the image is sepia or grayscale, apply contrast adjustment / CLAHE so faded photographs match canonical structural features.
-  - Return: `(monument_id, monument_name, confidence, top_candidates)`.
-
-#### 1.2 Update `backend/app/services/identification_service.py`
-- Eliminate the mock demo block (`demo = list(self._labels.values())[0]`).
-- Delegate inference directly to `MonumentClassifier`.
-- Join the predicted `monument_id` with `backend/data/monuments.json` to extract `location`, `era`, `coordinates`, and `architectural_style`.
-- Enforce strict confidence thresholds:
-  - `confidence >= 0.60`: Return `IdentifyResponse` (`recognized=True`).
-  - `confidence < 0.60`: Return `IdentifyNotRecognizedResponse` (`recognized=False`, with top-3 candidate suggestions).
-
-#### 1.3 Create Automated Model Bootstrap: `backend/scripts/setup_monument_classifier.py`
-- Parse all classes from `backend/data/monuments.json`.
-- Automatically generate `backend/models/labels.json`.
-- Export a working `monument_classifier.onnx` based on MobileNetV3-Large with transfer learning weights, or compile anchor visual prototypes so the server runs out-of-the-box without requiring Colab training upfront.
-- Add self-test verifying inference on `taj_mahal.jpg`, `qutub_minar.jpg`, and `colosseum.jpg`.
+* **Primary Engine**: Use **CLIP (`clip-ViT-B-32`) + reference gallery**. Do NOT create or ship an ONNX classifier trained on nothing. Only add an ONNX tier if trained on real monument images with reported held-out test accuracy.
+* **Scoring & Calibration**:
+  * Extract visual embeddings for query and gallery items.
+  * Convert cosine similarity to scores via softmax with temperature ($\tau$) across gallery classes.
+  * Choose the recognition threshold from an independent held-out set that includes:
+    (a) In-gallery monuments ($\ge 5$ photos per monument, including degraded and sepia ones).
+    (b) Monuments NOT in the gallery.
+    (c) Non-monument images (urban streets, vehicles, people, indoor spaces).
+  * Report the precision/recall tradeoff and confusion matrix at the chosen threshold.
+* **Separation of Gallery & Test Data**:
+  * Gallery reference images must **never** be used as test images.
+  * Maintain a dedicated, held-out test set with $\ge 5$ photos per monument.
+* **Shared Threshold Constant**:
+  * Use **one single confidence threshold constant** shared between backend and frontend (synchronized via config/API or identical constant).
 
 ---
 
-### PHASE 2: RAG CORPUS & PROVENANCE ("THE RIGHT PART")
+### PHASE 2: VERIFIED RAG CORPUS & GROUNDED PROVENANCE ("THE RIGHT PART")
 
-#### 2.1 Expand Monument Knowledge Corpus
-- Populate `backend/data/corpus/*.json` for all monuments present in `backend/data/monuments.json` (Red Fort, Qutub Minar, Hawa Mahal, India Gate, Colosseum, Eiffel Tower, etc.).
-- Structure per file:
-  ```json
-  {
-    "monument_id": "red_fort",
-    "name": "Red Fort",
-    "location": "Delhi, India",
-    "era": "1638–1648 CE",
-    "builder": "Emperor Shah Jahan",
-    "architectural_style": "Mughal architecture",
-    "unesco_status": "World Heritage Site (2007)",
-    "chunks": [
-      {
-        "text": "The Red Fort was commissioned by Emperor Shah Jahan in 1638...",
-        "source": "Archaeological Survey of India",
-        "source_url": "https://asi.nic.in"
-      }
-    ]
-  }
-  ```
-
-#### 2.2 Rebuild FAISS Vector Index
-- Create/update `backend/scripts/build_faiss_index.py`:
-  - Load all JSON chunks in `backend/data/corpus/`.
-  - Embed with `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional).
-  - Persist FAISS `IndexFlatIP` to `backend/data/faiss_index.bin` and metadata to `backend/data/faiss_meta.json`.
-- Update `backend/app/ml/rag/generator.py`:
-  - Ensure zero hallucination prompt: require inline citations `[Source Name]`.
-  - Add offline fallback: if `GROQ_API_KEY` is not provided or fails, synthesize a clean summary from curated corpus chunks directly.
+* **Real Page Fetching**:
+  * For every text chunk in `backend/data/corpus/*.json`: fetch the actual source page (Wikipedia, Archaeological Survey of India, UNESCO, or official sites) via HTTP.
+  * Paraphrase concisely, set `source_url` to the exact fetched URL, and set `"verified": true` ONLY if fetched.
+  * Mark any unfetched content `"verified": false` and strictly exclude it from RAG generation context.
+* **Attribution**:
+  * Wikipedia-derived text must include attribution (`CC BY-SA`) in the source field.
+* **Quality Audit**:
+  * Spot-check 10 random chunks against their URLs and report verification results with actual responses.
+* **Vector Index**:
+  * Rebuild FAISS index (`all-MiniLM-L6-v2`) exclusively over `"verified": true` chunks.
+  * Fall back cleanly to verified structured JSON facts if Groq API key is absent.
 
 ---
 
-### PHASE 3: RESTORATION PIPELINE HARDENING & QUALITY FIXES
+### PHASE 3: RESTORATION PIPELINE OVERHAUL & QUALITY FIXES
 
-Address known issues documented in `project_context_fix.md`:
-
-#### 3.1 Reinhard Color Transfer & Foliage Fix (`backend/app/ml/stages/colorize.py`)
-- Disable or condition the global Reinhard color transfer that causes foliage discoloration and hazy sepia bleed.
-- Default to native DDColor colorization output in LAB color space, preserving natural hues while eliminating the sepia cast.
-
-#### 3.2 Texture Preservation & Denoise Tuning (`backend/app/ml/stages/denoise_deblur.py`)
-- Eliminate painterly/smooth artifacts caused by aggressive NAFNet passes.
-- Implement adaptive edge-preserving detail blending: blend 20–30% of high-frequency original texture back into the denoised result to preserve authentic photographic film grain.
-
-#### 3.3 Hardware Safety & VRAM Management (`backend/app/ml/pipeline.py`)
-- Standardize the auto-downscaling GPU retry logic for 6GB VRAM (e.g., RTX 3050):
-  - Attempt stage processing at requested resolution.
-  - On `torch.cuda.OutOfMemoryError`, clear cache, downscale to `max_side = 768px`, and retry on GPU.
-  - Fall back to CPU only if GPU retry fails.
+* **Resolution & Memory Defaults**:
+  * Set `HR = False` in every entrypoint (API routes and evaluation scripts).
+  * Default `max_side = 768`.
+  * Keep the GPU OOM downscale-retry logic as a safety net only.
+* **Colorization**:
+  * Reinhard color transfer **OFF by default** (optional: a/b channels only with strength 0.3, never when the reference is the ground truth).
+  * Use DDColor native LAB colorization to avoid sepia bleed.
+* **Denoising & Texture Preservation**:
+  * NAFNet **OFF by default**.
+  * Add configurable `denoise_strength \in [0, 1]` with default `0.0`:
+    $$\text{out} = s \cdot \text{denoised} + (1 - s) \cdot \text{input}$$
+* **Crack & Inpainting Stage**:
+  * Add new `crack_inpaint` stage before `old_photo_repair`:
+    - BOPBTL scratch-mask at $\le 768$px.
+    - Upsample + dilate by 3–7px.
+    - Inpaint with LaMa (`cv2.inpaint` fallback).
+    - Skip inpainting if mask coverage $> 15\%$.
+* **Evaluation Alignment**:
+  * Align ground truth to restored output before scoring.
+  * Report luminance AND colour PSNR/SSIM, LPIPS, and crack-region edge-energy ratio.
+  * Run across all synthetic evaluation pairs, not just Taj Mahal.
 
 ---
 
 ### PHASE 4: API & STORAGE RESILIENCE
 
-#### 4.1 Hybrid Storage Service (`backend/app/services/storage_service.py`)
-- If Cloudinary credentials are provided, upload original and restored images to Cloudinary.
-- If Cloudinary credentials are empty, save to `backend/static/outputs/` and serve via FastAPI static files (`/static/outputs/...`).
-
-#### 4.2 Verify All Endpoints
-- `POST /api/v1/restore`: Submit async restoration job.
-- `GET /api/v1/restore/{job_id}`: Poll status, stages applied, and download URLs.
-- `POST /api/v1/restore/sync`: Synchronous execution for quick testing.
-- `POST /api/v1/identify`: Multipart image upload → returns monument identification.
-- `GET /api/v1/history/{monument_id}`: Returns verified history with citations.
-- `POST /api/v1/identify-and-inform`: Combined identification + historical summary in a single call.
-- `GET /health`: Model availability and health status.
-
----
-
-### PHASE 5: CINEMATIC WEB DEMO (VITE + REACT)
-
-Elevate `web-demo/` into an award-winning, archival-grade frontend:
-- **Art Direction**: Deep dark background (`#0A0A0A`), warm archival gold/amber accents, subtle CSS/SVG film grain overlay.
-- **Home (`Home.tsx`)**:
-  - Interactive hero section with `<BeforeAfterSlider />`.
-  - Quick action buttons: "Restore a Photo" and "Identify a Monument".
-  - Curated monument preview cards with confidence badges.
-- **Restore Page (`RestorePage.tsx`)**:
-  - Drag-and-drop upload zone.
-  - Toggles for individual stages: Old Photo Repair, Denoise/Deblur, Face Restore, Colorize, Upscale.
-  - Dynamic progress indicator.
-  - Interactive comparison slider with full-screen zoom and download button.
-- **Identify Page (`IdentifyPage.tsx`)**:
-  - Live photo upload / camera capture.
-  - High-confidence view (≥70%): full-bleed user photo hero backdrop, glassmorphism metadata card, and "Read Verified History" CTA.
-  - Low-confidence view (<70%): helpful fallback card offering candidate guesses and a "Restore Photo First" shortcut.
-- **History Detail (`HistoryDetail.tsx`)**:
-  - Editorial header, RAG-grounded summary, inline source citations, interactive timeline, and architectural specs.
+* **Storage Failover**:
+  * If Cloudinary credentials exist: upload images to Cloudinary.
+  * If absent or failing: store locally in `backend/static/outputs/` and serve via FastAPI static route.
+* **Endpoints**:
+  * `POST /api/v1/restore`: Submit async job.
+  * `GET /api/v1/restore/{job_id}`: Poll status.
+  * `POST /api/v1/restore/sync`: Synchronous execution.
+  * `POST /api/v1/identify`: Multipart image upload $\rightarrow$ CLIP gallery identification.
+  * `GET /api/v1/history/{monument_id}`: Grounded historical facts.
+  * `POST /api/v1/identify-and-inform`: Combined identification + verified history.
+  * `GET /health`: Health and model readiness.
 
 ---
 
-### PHASE 6: BENCHMARKS, TESTING, DOCKER & DOCUMENTATION
+### PHASE 5: CINEMATIC WEB FRONTEND & MOBILE-FIRST PWA
 
-#### 6.1 Automated Benchmarking Harness
-- Run evaluation scripts:
-  ```bash
-  python backend/scripts/generate_taj_report.py
-  python backend/app/eval/run_eval.py
-  ```
-- Target metrics: PSNR > 28 dB, SSIM > 0.85, LPIPS < 0.15, Classifier Top-1 Accuracy > 90%.
-
-#### 6.2 Pytest Suite
-Create and pass tests in `backend/tests/`:
-- `test_restore.py`: Validates single and multi-stage restoration pipelines.
-- `test_identify.py`: Tests clear photos, degraded photos, and out-of-distribution inputs.
-- `test_rag.py`: Tests embedding retrieval and generator citations.
-- `test_combined.py`: Tests `/identify-and-inform` integration.
-
-#### 6.3 Production Docker Setup
-- Create root `docker-compose.yml` orchestrating:
-  - `backend`: Python 3.12, PyTorch, Uvicorn on port 8000.
-  - `web-demo`: Nginx / Vite preview on port 5173.
-
-#### 6.4 Documentation
-- Update `README.md` with:
-  - Architecture diagram reflecting both the Restoration Pipeline and the Dual Intelligence Layer.
-  - Swagger UI guide (`http://localhost:8000/docs`).
-  - Web demo setup and quickstart instructions.
+* **Design Direction**:
+  * Strict adherence to approved design system: warm neutrals, serif headings, narrow glass panels, and subtle film grain overlay.
+* **Mobile-First PWA Polish**:
+  * Installable Web App manifest (`manifest.json` + service worker / PWA meta tags).
+  * Camera capture via `<input type="file" accept="image/*" capture="environment">`.
+  * Verified and responsive at 390px mobile viewport width.
+* **Core Views**:
+  * Hero with interactive `<BeforeAfterSlider />`.
+  * Full-bleed photo hero result on high confidence; graceful candidate fallback below threshold.
+  * Editorial history detail page with interactive timeline and verified source badges.
 
 ---
 
-## ⚡ EXECUTION INSTRUCTIONS FOR THE AGENT
+### PHASE 6: MEASURED EVALUATION HARNESS & FINAL REPORTING
 
-1. Begin with **Phase 1**: implement `monument_classifier.py`, wire real inference in `identification_service.py`, and run `setup_monument_classifier.py`.
-2. Proceed to **Phase 2**: populate missing corpus files in `backend/data/corpus/` and index them with FAISS.
-3. Execute **Phase 3**: refine DDColor colorization and NAFNet edge-blending in the restoration stages.
-4. Verify **Phase 4 & 5**: launch FastAPI and Vite dev server to validate the full workflow in browser.
-5. Complete **Phase 6**: execute test suite and output final benchmark results.
+* **Measured Benchmarking**:
+  * No fixed hypothetical metric targets.
+  * Run evaluation harness and report measured PSNR, SSIM, LPIPS, and classifier held-out accuracy, plus the measured delta versus pre-change baselines.
+* **Docker Packaging**:
+  * Dockerfile and `docker-compose.yml` are optional / stretch. Skip if GPU passthrough is unsupported.
+* **Documentation**:
+  * Update `README.md` with final measured benchmarks, pipeline diagrams, and quickstart instructions.

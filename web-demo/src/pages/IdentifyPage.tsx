@@ -16,9 +16,7 @@ import UploadZone from '../components/UploadZone';
 import ProgressBar from '../components/ProgressBar';
 import { identifyMonument } from '../utils/api';
 import type { IdentifyResultData } from '../types';
-
-// Configurable threshold: switch between Photo-as-Hero and Low-Confidence Fallback
-const CONFIDENCE_HERO_THRESHOLD = 0.70;
+import { CONFIDENCE_THRESHOLD, CONFIDENCE_THRESHOLD_PERCENT } from '../constants/thresholds';
 
 export default function IdentifyPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -37,9 +35,9 @@ export default function IdentifyPage() {
 
     const stages = [
       { pct: 30, name: 'Normalizing perspective & lighting' },
-      { pct: 60, name: 'MobileNetV3 feature extraction' },
-      { pct: 85, name: 'Matching against global heritage corpus' },
-      { pct: 98, name: 'Synthesizing identification confidence' },
+      { pct: 60, name: 'CLIP visual feature extraction' },
+      { pct: 85, name: 'Matching against global heritage gallery' },
+      { pct: 98, name: 'Calibrating identification confidence' },
     ];
 
     let i = 0;
@@ -73,7 +71,7 @@ export default function IdentifyPage() {
   const userPhotoUrl = file ? URL.createObjectURL(file) : null;
   const isHighConfidence =
     result?.recognized === true &&
-    result.confidence >= CONFIDENCE_HERO_THRESHOLD;
+    result.confidence >= CONFIDENCE_THRESHOLD;
 
   return (
     <div className="w-full min-h-[calc(100dvh-4rem)] flex flex-col justify-center">
@@ -228,7 +226,7 @@ export default function IdentifyPage() {
             <p className="text-sm md:text-base text-ink-muted dark:text-ink-muted-dark leading-relaxed mb-8">
               The neural classifier detected architectural characteristics of{' '}
               <strong className="text-ink dark:text-ink-dark">{result.recognized ? result.monument_name : 'an unlisted landmark'}</strong>,
-              but lighting, perspective, or image degradation kept confidence below our 70% verification threshold.
+              but lighting, perspective, or image degradation kept confidence below our {CONFIDENCE_THRESHOLD_PERCENT}% verification threshold.
             </p>
 
             {/* Thumbnail comparison preview */}

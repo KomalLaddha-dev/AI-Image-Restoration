@@ -17,6 +17,7 @@ backend/models/
 *.onnx
 *.tflite
 *.pt
+!backend/data/gallery_embeddings.pt
 
 # Environment
 .env
@@ -40,6 +41,7 @@ Thumbs.db
 node_modules/
 web-demo/dist/
 mobile/node_modules/
+*.tsbuildinfo
 
 # Temp
 static/restore/

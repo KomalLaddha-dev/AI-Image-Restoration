@@ -1,0 +1,122 @@
+[
+  {
+    "monument_id": "taj_mahal",
+    "monument_name": "Taj Mahal",
+    "file_path": "reference_gallery\\taj_mahal\\ref_1.jpg"
+  },
+  {
+    "monument_id": "taj_mahal",
+    "monument_name": "Taj Mahal",
+    "file_path": "reference_gallery\\taj_mahal\\ref_2.jpg"
+  },
+  {
+    "monument_id": "red_fort",
+    "monument_name": "Red Fort",
+    "file_path": "reference_gallery\\red_fort\\ref_1.jpg"
+  },
+  {
+    "monument_id": "red_fort",
+    "monument_name": "Red Fort",
+    "file_path": "reference_gallery\\red_fort\\ref_2.jpg"
+  },
+  {
+    "monument_id": "qutub_minar",
+    "monument_name": "Qutub Minar",
+    "file_path": "reference_gallery\\qutub_minar\\ref_1.jpg"
+  },
+  {
+    "monument_id": "qutub_minar",
+    "monument_name": "Qutub Minar",
+    "file_path": "reference_gallery\\qutub_minar\\ref_2.jpg"
+  },
+  {
+    "monument_id": "colosseum",
+    "monument_name": "Colosseum",
+    "file_path": "reference_gallery\\colosseum\\ref_1.jpg"
+  },
+  {
+    "monument_id": "colosseum",
+    "monument_name": "Colosseum",
+    "file_path": "reference_gallery\\colosseum\\ref_2.jpg"
+  },
+  {
+    "monument_id": "eiffel_tower",
+    "monument_name": "Eiffel Tower",
+    "file_path": "reference_gallery\\eiffel_tower\\ref_1.jpg"
+  },
+  {
+    "monument_id": "eiffel_tower",
+    "monument_name": "Eiffel Tower",
+    "file_path": "reference_gallery\\eiffel_tower\\ref_2.jpg"
+  },
+  {
+    "monument_id": "pyramids_giza",
+    "monument_name": "Pyramids of Giza",
+    "file_path": "reference_gallery\\pyramids_giza\\ref_1.jpg"
+  },
+  {
+    "monument_id": "pyramids_giza",
+    "monument_name": "Pyramids of Giza",
+    "file_path": "reference_gallery\\pyramids_giza\\ref_2.jpg"
+  },
+  {
+    "monument_id": "machu_picchu",
+    "monument_name": "Machu Picchu",
+    "file_path": "reference_gallery\\machu_picchu\\ref_1.jpg"
+  },
+  {
+    "monument_id": "machu_picchu",
+    "monument_name": "Machu Picchu",
+    "file_path": "reference_gallery\\machu_picchu\\ref_2.jpg"
+  },
+  {
+    "monument_id": "hawa_mahal",
+    "monument_name": "Hawa Mahal",
+    "file_path": "reference_gallery\\hawa_mahal\\ref_1.jpg"
+  },
+  {
+    "monument_id": "hawa_mahal",
+    "monument_name": "Hawa Mahal",
+    "file_path": "reference_gallery\\hawa_mahal\\ref_2.jpg"
+  },
+  {
+    "monument_id": "angkor_wat",
+    "monument_name": "Angkor Wat",
+    "file_path": "reference_gallery\\angkor_wat\\ref_1.jpg"
+  },
+  {
+    "monument_id": "angkor_wat",
+    "monument_name": "Angkor Wat",
+    "file_path": "reference_gallery\\angkor_wat\\ref_2.jpg"
+  },
+  {
+    "monument_id": "gateway_of_india",
+    "monument_name": "Gateway of India",
+    "file_path": "reference_gallery\\gateway_of_india\\ref_1.jpg"
+  },
+  {
+    "monument_id": "gateway_of_india",
+    "monument_name": "Gateway of India",
+    "file_path": "reference_gallery\\gateway_of_india\\ref_2.jpg"
+  },
+  {
+    "monument_id": "parthenon",
+    "monument_name": "Parthenon",
+    "file_path": "reference_gallery\\parthenon\\ref_1.jpg"
+  },
+  {
+    "monument_id": "parthenon",
+    "monument_name": "Parthenon",
+    "file_path": "reference_gallery\\parthenon\\ref_2.jpg"
+  },
+  {
+    "monument_id": "statue_of_liberty",
+    "monument_name": "Statue of Liberty",
+    "file_path": "reference_gallery\\statue_of_liberty\\ref_1.jpg"
+  },
+  {
+    "monument_id": "statue_of_liberty",
+    "monument_name": "Statue of Liberty",
+    "file_path": "reference_gallery\\statue_of_liberty\\ref_2.jpg"
+  }
+]

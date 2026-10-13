@@ -17,12 +17,12 @@ from app.models.schemas import IdentifyResponse, IdentifyNotRecognizedResponse
 from app.ml.classifier.monument_classifier import MonumentClassifier
 
 
-# Confidence threshold — below this, return "not recognized"
-CONFIDENCE_THRESHOLD = 0.60
+# Confidence threshold — single constant shared across backend and frontend (0.65 = 65%)
+CONFIDENCE_THRESHOLD = 0.65
 
 
 class IdentificationService:
-    """Identifies monuments from images using the MobileNetV3 ONNX classifier."""
+    """Identifies monuments from images using CLIP (clip-ViT-B-32) + reference gallery."""
 
     def __init__(self):
         self._classifier: MonumentClassifier | None = None
@@ -31,19 +31,17 @@ class IdentificationService:
 
     def load(self) -> None:
         """Load the monument classifier and metadata mapping."""
-        settings = get_settings()
-        self._classifier = MonumentClassifier(model_dir=settings.model_dir)
-        success = self._classifier.load()
-
-        if success:
-            logger.info("Monument classifier ONNX model loaded successfully.")
-        else:
-            logger.warning("Monument classifier ONNX model could not be loaded at startup.")
-
-        # Load rich metadata from backend/data/monuments.json
         data_path = Path("data") / "monuments.json"
         if not data_path.exists():
             data_path = Path(__file__).resolve().parent.parent.parent / "data" / "monuments.json"
+
+        self._classifier = MonumentClassifier(data_dir=data_path.parent)
+        success = self._classifier.load()
+
+        if success:
+            logger.info("Monument classifier CLIP reference gallery loaded successfully.")
+        else:
+            logger.warning("Monument classifier CLIP gallery could not be loaded at startup.")
 
         if data_path.exists():
             try:
@@ -64,7 +62,7 @@ class IdentificationService:
         Identify a monument from an uploaded image.
 
         Returns:
-            IdentifyResponse if confidence >= 0.60,
+            IdentifyResponse if confidence >= 0.65,
             IdentifyNotRecognizedResponse otherwise.
         """
         if not self._loaded or self._classifier is None:

@@ -1,12 +1,13 @@
 """
 Monument Classifier Engine
 ==========================
-High-performance visual recognition engine using ONNX Runtime.
+Primary visual recognition engine using CLIP (clip-ViT-B-32) + Reference Gallery.
 Features:
-- Sub-20ms CPU inference with MobileNetV3-Large ONNX architecture.
-- Archival photograph preprocessing: adaptive luminance enhancement (CLAHE)
-  to preserve architectural contours in faded or sepia photographs.
-- Calibrated softmax confidence scoring and top-K candidate extraction.
+- Zero-shot visual representation with OpenAI's clip-ViT-B-32 via SentenceTransformers.
+- Precomputed reference gallery embeddings across verified monuments.
+- Max-pooled cosine similarity per architectural monument class.
+- Temperature-scaled softmax confidence calibration.
+- Full compatibility with historical and degraded archival photographs.
 """
 
 from __future__ import annotations
@@ -17,151 +18,168 @@ from typing import Any
 
 import cv2
 import numpy as np
+import torch
 from loguru import logger
+from PIL import Image
 
 try:
-    import onnxruntime as ort
+    from sentence_transformers import SentenceTransformer
 except ImportError:
-    ort = None
+    SentenceTransformer = None
 
 
 class MonumentClassifier:
-    """Production ONNX Runtime classifier for monuments and heritage landmarks."""
+    """Production CLIP-based classifier for monuments and heritage landmarks."""
 
-    def __init__(self, model_dir: Path | str | None = None):
-        self.model_dir = Path(model_dir) if model_dir else Path(__file__).resolve().parent.parent.parent.parent / "models"
-        self.onnx_path = self.model_dir / "monument_classifier.onnx"
-        self.labels_path = self.model_dir / "labels.json"
+    def __init__(
+        self,
+        data_dir: Path | str | None = None,
+        model_name: str = "clip-ViT-B-32",
+        temperature: float = 0.03,
+    ):
+        self.data_dir = (
+            Path(data_dir)
+            if data_dir
+            else Path(__file__).resolve().parent.parent.parent.parent / "data"
+        )
+        self.model_name = model_name
+        self.temperature = temperature
 
-        self.session: ort.InferenceSession | None = None
-        self.labels: dict[str, dict[str, Any]] = {}
+        self.gallery_emb_path = self.data_dir / "gallery_embeddings.pt"
+        self.gallery_meta_path = self.data_dir / "gallery_meta.json"
+
+        self.model: SentenceTransformer | None = None
+        self.gallery_embeddings: torch.Tensor | None = None
+        self.gallery_meta: list[dict[str, Any]] = []
+        self.classes: list[str] = []
+        self.class_names: dict[str, str] = {}
         self.is_loaded = False
 
     def load(self) -> bool:
-        """Load the ONNX model and label dictionary."""
-        if not self.labels_path.exists():
-            logger.warning(f"Monument labels not found at {self.labels_path}")
-            return False
-
-        try:
-            with open(self.labels_path, encoding="utf-8") as f:
-                self.labels = json.load(f)
-            logger.info(f"Loaded {len(self.labels)} monument labels from {self.labels_path.name}")
-        except Exception as e:
-            logger.error(f"Failed to read {self.labels_path}: {e}")
-            return False
-
-        if not self.onnx_path.exists():
-            logger.warning(f"ONNX classifier weights not found at {self.onnx_path}")
-            return False
-
-        if ort is None:
-            logger.error("onnxruntime is not installed")
-            return False
-
-        try:
-            # Initialize ONNX Runtime session
-            opts = ort.SessionOptions()
-            opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-            opts.inter_op_num_threads = 2
-            opts.intra_op_num_threads = 4
-            self.session = ort.InferenceSession(
-                str(self.onnx_path),
-                sess_options=opts,
-                providers=["CPUExecutionProvider"],
+        """Load the CLIP model and reference gallery embeddings."""
+        if not self.gallery_emb_path.exists() or not self.gallery_meta_path.exists():
+            logger.warning(
+                f"Reference gallery artifacts not found at {self.gallery_emb_path} or {self.gallery_meta_path}"
             )
+            return False
+
+        if SentenceTransformer is None:
+            logger.error("sentence_transformers is not installed")
+            return False
+
+        try:
+            logger.info(f"Loading CLIP visual encoder: {self.model_name}...")
+            self.model = SentenceTransformer(self.model_name)
+
+            raw_emb = torch.load(self.gallery_emb_path, map_location="cpu")
+            # Normalize gallery embeddings for cosine similarity
+            self.gallery_embeddings = raw_emb / raw_emb.norm(dim=1, keepdim=True)
+
+            with open(self.gallery_meta_path, encoding="utf-8") as f:
+                self.gallery_meta = json.load(f)
+
+            # Build class index mapping
+            self.class_names = {}
+            for item in self.gallery_meta:
+                m_id = item["monument_id"]
+                m_name = item["monument_name"]
+                self.class_names[m_id] = m_name
+
+            self.classes = sorted(list(self.class_names.keys()))
             self.is_loaded = True
-            logger.info(f"Loaded MonumentClassifier ONNX model from {self.onnx_path.name}")
+            logger.info(
+                f"Loaded MonumentClassifier CLIP engine with {len(self.gallery_meta)} "
+                f"reference gallery items across {len(self.classes)} classes."
+            )
             return True
         except Exception as e:
-            logger.error(f"Failed to load ONNX model: {e}")
+            logger.error(f"Failed to load CLIP classifier engine: {e}")
             return False
 
-    def preprocess(self, image: np.ndarray) -> np.ndarray:
+    def preprocess(self, image: np.ndarray | Image.Image) -> Image.Image:
+        """Convert input array or image to RGB PIL image for CLIP encoding."""
+        if isinstance(image, Image.Image):
+            return image.convert("RGB")
+
+        if isinstance(image, np.ndarray):
+            if len(image.shape) == 2:
+                img_rgb = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+            elif image.shape[2] == 4:
+                img_rgb = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+            else:
+                img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            return Image.fromarray(img_rgb)
+
+        raise ValueError(f"Unsupported image type: {type(image)}")
+
+    def predict(
+        self,
+        image: np.ndarray | Image.Image,
+        temperature: float | None = None,
+    ) -> dict[str, Any]:
         """
-        Preprocess an input image (BGR numpy array) for MobileNetV3:
-        1. Historical photo enhancement: if faded/sepia/grayscale, apply CLAHE on L channel.
-        2. Letterbox or center crop to 224x224.
-        3. Normalize using ImageNet mean & std.
-        4. Transpose to NCHW float32.
-        """
-        if len(image.shape) == 2:
-            img_bgr = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-        else:
-            img_bgr = image.copy()
-
-        # Check for sepia or low-contrast archival degradation
-        # In LAB space, L represents lightness; apply CLAHE to restore structural edges
-        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
-        l_channel, a_channel, b_channel = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        l_enhanced = clahe.apply(l_channel)
-        enhanced_bgr = cv2.cvtColor(cv2.merge([l_enhanced, a_channel, b_channel]), cv2.COLOR_LAB2BGR)
-
-        # Aspect-ratio preserving resize and center crop to 224x224
-        h, w = enhanced_bgr.shape[:2]
-        target_size = 224
-        scale = max(target_size / h, target_size / w)
-        new_w, new_h = int(w * scale), int(h * scale)
-        resized = cv2.resize(enhanced_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
-
-        # Center crop
-        start_x = max(0, (new_w - target_size) // 2)
-        start_y = max(0, (new_h - target_size) // 2)
-        cropped = resized[start_y : start_y + target_size, start_x : start_x + target_size]
-        if cropped.shape[:2] != (target_size, target_size):
-            cropped = cv2.resize(cropped, (target_size, target_size))
-
-        # Convert to RGB, float32, and normalize
-        img_rgb = cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
-        mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
-        std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
-        img_norm = (img_rgb - mean) / std
-
-        # HWC -> CHW -> NCHW
-        tensor = np.transpose(img_norm, (2, 0, 1))
-        tensor = np.expand_dims(tensor, axis=0).astype(np.float32)
-        return tensor
-
-    def predict(self, image: np.ndarray) -> dict[str, Any]:
-        """
-        Run inference on an input BGR image.
+        Run inference on an input image.
         Returns:
-            dict containing top_id, top_name, confidence, and top_candidates.
+            dict containing monument_id, monument_name, confidence, raw_similarity, and top_candidates.
         """
-        if not self.is_loaded:
+        if not self.is_loaded or self.model is None or self.gallery_embeddings is None:
             success = self.load()
             if not success:
-                raise RuntimeError("MonumentClassifier failed to load weights or labels.")
+                raise RuntimeError("MonumentClassifier failed to load CLIP weights or gallery embeddings.")
 
-        assert self.session is not None, "Inference session not initialized"
+        temp = temperature if temperature is not None else self.temperature
+        pil_img = self.preprocess(image)
 
-        input_tensor = self.preprocess(image)
-        outputs = self.session.run(["output"], {"input": input_tensor})
-        logits = outputs[0][0]  # shape: (num_classes,)
+        # Compute normalized image embedding (shape: [512])
+        query_emb = self.model.encode(
+            pil_img,
+            convert_to_tensor=True,
+            normalize_embeddings=True,
+        ).cpu()
 
-        # Numerically stable softmax
+        # Compute cosine similarities against all gallery embeddings (shape: [N_gallery])
+        sims = (
+            torch.matmul(self.gallery_embeddings, query_emb.unsqueeze(1))
+            .squeeze(1)
+            .numpy()
+        )
+
+        # Max-pool similarities per monument class
+        class_sims: dict[str, float] = {c: -1.0 for c in self.classes}
+        for idx, item in enumerate(self.gallery_meta):
+            m_id = item["monument_id"]
+            if sims[idx] > class_sims[m_id]:
+                class_sims[m_id] = float(sims[idx])
+
+        scores = np.array([class_sims[c] for c in self.classes], dtype=np.float32)
+
+        # Temperature-scaled softmax
+        logits = scores / temp
         exp_logits = np.exp(logits - np.max(logits))
         probs = exp_logits / exp_logits.sum()
 
-        top_idx = int(np.argmax(probs))
-        top_conf = float(probs[top_idx])
-        top_meta = self.labels.get(str(top_idx), {})
-
-        # Top 3 candidates
         sorted_indices = np.argsort(probs)[::-1]
+        top_idx = int(sorted_indices[0])
+        top_id = self.classes[top_idx]
+        top_name = self.class_names[top_id]
+        top_prob = float(probs[top_idx])
+        top_sim = float(scores[top_idx])
+
+        # Top candidates
         top_candidates = []
         for idx in sorted_indices[:3]:
-            meta = self.labels.get(str(idx), {})
+            cid = self.classes[idx]
             top_candidates.append({
-                "id": meta.get("id", f"monument_{idx}"),
-                "name": meta.get("name", "Unknown Landmark"),
+                "id": cid,
+                "name": self.class_names.get(cid, cid),
                 "confidence": float(probs[idx]),
+                "similarity": float(scores[idx]),
             })
 
         return {
-            "monument_id": top_meta.get("id", f"monument_{top_idx}"),
-            "monument_name": top_meta.get("name", "Unknown Landmark"),
-            "confidence": top_conf,
+            "monument_id": top_id,
+            "monument_name": top_name,
+            "confidence": top_prob,
+            "raw_similarity": top_sim,
             "top_candidates": top_candidates,
         }
