@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # --- Model paths ---
     model_dir: str = "./models"
-    device: str = "cpu"  # "cpu" or "cuda"
+    device: str = "cuda" if __import__("torch").cuda.is_available() else "cpu"
 
     # --- Groq API ---
     groq_api_key: str = ""

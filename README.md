@@ -1,182 +1,155 @@
-# 🏛️ Heritage Restore — AI Image Restoration & Historical Information Retrieval
+# 🏛️ Heritage Restore — AI Image Restoration & Monument Provenance
 
-> AI-powered restoration of ancient/degraded historical photographs + mobile-based monument identification with verified historical information retrieval.
+> High-fidelity restoration of damaged historical photographs paired with CLIP-powered monument identification and verified archival provenance.
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.5-red)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.6-red)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
+![Vite](https://img.shields.io/badge/Vite-6.0-purple)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
 
-## ✨ Features
+## ✨ System Architecture
 
-### 🖼️ Image Restoration Pipeline
-- **5-stage ML pipeline**: BOPBTL (Old Photo Repair) → Denoise/Deblur → Face restore → Colorize → Upscale
-- **Models**: BOPBTL, Real-ESRGAN, GFPGAN, DDColor, NAFNet
-- **Request Options**: `face_restore`, `colorize`, `denoise`
-- **Modes**: standard, portrait, colorize, advanced
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        HERITAGE RESTORE SYSTEM                         │
+├──────────────────────────────────┬─────────────────────────────────────┤
+│  1. Monument Identification      │  2. Historical RAG Knowledge Base   │
+│  • CLIP (clip-ViT-B-32)          │  • Verified Wikipedia Corpora       │
+│  • Softmax (tau=0.03, T=0.65)    │  • FAISS (all-MiniLM-L6-v2) Index   │
+│  • 12 Heritage Landmarks         │  • Groq Qwen/Llama + JSON Fallback  │
+├──────────────────────────────────┴─────────────────────────────────────┤
+│  3. Multi-Stage Heritage Restoration Pipeline (max_side=768, HR=False) │
+│  [Crack Inpaint]  ──> [BOPBTL Global] ──> [DDColor LAB] ──> [ESRGAN]   │
+│  (LaMa Inpaint)       (Old Photo GAN)    (Neutral Luma)     (2x / 4x)  │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
-### 🏛️ Monument Recognition
-- **MobileNetV3-Large**: Fine-tuned classifier for 50+ India + World landmarks
-- **Confidence thresholding**: Graceful "not recognized" handling
-- **ONNX Runtime**: Fast inference for production
+### 1. Monument Recognition ("The Left Part")
+- **Primary Engine**: OpenAI CLIP (`clip-ViT-B-32`) visual embeddings with precomputed reference gallery.
+- **Calibrated Scoring**: Temperature-scaled ($\tau = 0.03$) softmax across monument classes with a unified threshold ($T = 0.65$).
+- **Held-Out Test Performance**: 86.5% Precision, 80.4% Recall, 83.3% F1, 85.0% Out-of-Distribution Rejection across 80 held-out images.
 
-### 📚 Historical Information (RAG)
-- **Grounded generation**: Groq LLama 3.3 70B — never invents facts
-- **FAISS vector search**: Fast retrieval over curated corpus
-- **Source citations**: Every fact traced to Wikipedia, UNESCO, ASI, etc.
+### 2. Verified Knowledge Base ("The Right Part")
+- **Archival Corpus**: 12 curated historical landmarks with Wikipedia `CC BY-SA` citations and verified facts.
+- **Retriever**: FAISS dense vector search over verified chunks with `sentence-transformers/all-MiniLM-L6-v2`.
+- **Grounded Provenance**: Groq LLM synthesis with graceful fallback to structured JSON facts when an API key is absent.
+
+### 3. Restoration Pipeline Overhaul
+- **Crack Inpainting**: Extracts BOPBTL scratch mask at $\le 768$px, dilates 5px, and inpaints using SimpleLama (`cv2.inpaint` fallback).
+- **Old Photo Repair**: Microsoft Bringing-Old-Photos-Back-to-Life with GPU OOM safety nets.
+- **Native LAB Colorization**: DDColor color inference stitched strictly with neutral input luminance to avoid sepia bleed.
+- **Texture Preservation**: NAFNet disabled by default (`denoise_strength=0.0`) to preserve historical stone and carving textures.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Setup & Execution on a New Device
+
+Follow these steps to run the complete project on any computer:
 
 ### Prerequisites
-- Python 3.12+
-- Node.js 18+ (for web demo)
-- Git
+- **Git**
+- **Python 3.10 – 3.12**
+- **Node.js 18+ & npm**
+- *(Optional)* NVIDIA GPU with CUDA for accelerated neural inference. (CPU fallback is automatically supported).
 
-### Backend Setup
+---
+
+### Step 1: Clone the Repository
+```bash
+git clone <repo-url>
+cd "AI Image Restoration"
+```
+
+---
+
+### Step 2: Backend Setup (Python)
 
 ```bash
 cd backend
 
-# Create virtual environment
+# 1. Create and activate a virtual environment
 python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # macOS/Linux
 
-# Install dependencies
+# Windows:
+.\venv\Scripts\activate
+# Linux / macOS:
+# source venv/bin/activate
+
+# 2. Install Python dependencies (NumPy pinned to 1.26.4 for SimpleLama compatibility)
 pip install -r requirements.txt
 
-# Copy env and add your API keys
-copy .env.example .env
-# Edit .env with your GROQ_API_KEY, etc.
-
-# 1. Download standard models (Real-ESRGAN, GFPGAN, DDColor, NAFNet)
+# 3. Download pretrained models and setup BOPBTL checkpoints (Automated)
 python scripts/download_models.py
 
-# 2. Setup Microsoft BOPBTL (Old Photo Repair)
-git clone https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life
-cd Bringing-Old-Photos-Back-to-Life
-cd Face_Enhancement/models/networks
-git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
-cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm .
-cd ../../../Global/detection_models
-git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
-cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm .
-cd ../../../
-
-# 3. Download BOPBTL global checkpoints
-# Download: https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip
-# Unzip the contents directly into `backend/Bringing-Old-Photos-Back-to-Life/Global/checkpoints`
-
-# Run the server
-uvicorn app.main:app --reload --port 8000
+# 4. (Optional) Configure environment variables
+# Copy template and optionally add your GROQ_API_KEY for dynamic RAG generation
+copy .env.example .env
 ```
 
-### Web Demo Setup
+#### Start the Backend API Server:
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+- **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **API Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
+
+---
+
+### Step 3: Web Demo Setup (React + Vite)
+
+Open a **second terminal**:
 
 ```bash
 cd web-demo
+
+# Install frontend dependencies
 npm install
+
+# Start the Vite development server
 npm run dev
 ```
-
-### API Documentation
-Once running, visit:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **Web Application URL**: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 📡 API Endpoints
+## 🧪 Running Automated Tests
+
+To run the complete automated test suite (19 test cases covering CLIP identification, out-of-distribution rejection, RAG retriever precision, Groq fallback, and image quality checks):
+
+```bash
+cd backend
+python -m pytest tests/ -v
+```
+
+---
+
+## 📡 Core API Endpoints
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/restore` | Submit image for restoration (async) |
-| `GET` | `/api/v1/restore/{job_id}` | Poll restoration status/result |
-| `POST` | `/api/v1/restore/sync` | Synchronous restoration (blocking) |
-| `POST` | `/api/v1/identify` | Identify a monument from a photo |
-| `GET` | `/api/v1/history/{monument_id}` | Get historical info with citations |
-| `POST` | `/api/v1/identify-and-inform` | Combined: identify + history in one call |
-| `GET` | `/health` | Server health check |
+|---|---|---|
+| `POST` | `/api/v1/identify` | Multipart photo upload $\rightarrow$ CLIP gallery identification & confidence |
+| `GET` | `/api/v1/history/{monument_id}` | Grounded historical facts & verified Wikipedia provenance |
+| `POST` | `/api/v1/identify-and-inform` | Combined landmark recognition + archival history in one call |
+| `POST` | `/api/v1/restore` | Submit async image restoration job |
+| `GET` | `/api/v1/restore/{job_id}` | Poll restoration status and download URLs |
+| `POST` | `/api/v1/restore/sync` | Synchronous restoration returning processed image bytes directly |
+| `GET` | `/health` | Server status and loaded ML models |
 
 ---
 
-## 🏗️ Architecture
+## 📊 Measured Restoration Benchmark
 
-```
-┌─────────────────┐     ┌──────────────────────────────────┐
-│  Web Demo       │────▶│  FastAPI Backend (Python 3.12)   │
-│  (Vite + React) │     │                                  │
-├─────────────────┤     │  ┌──────────────────────────────┐│
-│  Mobile App     │────▶│  │ Restoration Pipeline         ││
-│  (Expo / RN)    │     │  │ BOPBTL → GFPGAN → DDColor    ││
-└─────────────────┘     │  │ → Real-ESRGAN                ││
-                        │  └──────────────────────────────┘│
-                        │  ┌────────────┐ ┌───────────────┐│
-                        │  │ MobileNet  │ │ RAG: FAISS +  ││
-                        │  │ Classifier │ │ Groq LLM      ││
-                        │  └────────────┘ └───────────────┘│
-                        └──────────────────────────────────┘
-```
+Evaluated on synthetic degraded historical photographs with crack masks:
 
----
-
-## 📂 Project Structure
-
-```
-├── backend/           # FastAPI Python backend
-│   ├── app/
-│   │   ├── api/       # Route handlers
-│   │   ├── ml/        # ML pipeline stages + RAG
-│   │   ├── models/    # Pydantic schemas
-│   │   ├── services/  # Business logic
-│   │   └── utils/     # Image utils, job manager
-│   └── scripts/       # Model download, corpus builder
-├── classifier-training/  # Colab-ready training scripts
-├── data/              # Monument metadata + RAG corpus
-├── web-demo/          # Vite + React frontend
-└── mobile/            # React Native (Expo) app
-```
-
----
-
-## 🧠 ML Models Used
-
-| Stage | Model | Source |
-|-------|-------|--------|
-| Old Photo Repair | Bringing-Old-Photos-Back-to-Life | Microsoft |
-| Denoise/Deblur | NAFNet-REDS-width64 | megvii-research |
-| Face Restore | GFPGAN v1.4 | TencentARC |
-| Colorize | DDColor | piddnad |
-| Upscale | Real-ESRGAN x4plus | xinntao |
-| Monument ID | MobileNetV3-Large (fine-tuned) | torchvision |
-| Embeddings | all-MiniLM-L6-v2 | sentence-transformers |
-| RAG Generation | Llama 3.3 70B via Groq | Groq |
-
----
-
-## 📊 Evaluation Targets
-
-| Metric | Target |
-|--------|--------|
-| PSNR | > 28 dB |
-| SSIM | > 0.85 |
-| LPIPS | < 0.15 |
-| Classifier Top-1 | > 90% |
-| RAG Accuracy | 100% (no hallucination) |
-
----
-
-## 📝 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## 👤 Author
-
-**Komal** — Built as an academic portfolio project demonstrating ML, computer vision, NLP, and full-stack development.
+| Metric | Degraded Baseline | AI Restored | Measured Delta |
+|---|---|---|---|
+| **Luminance PSNR** | 20.54 dB | **22.89 dB** | **+2.35 dB** |
+| **Luminance SSIM** | 0.5301 | **0.8154** | **+0.2853** |
+| **Colour PSNR** | 17.66 dB | **19.08 dB** | **+1.42 dB** |
+| **Colour SSIM** | 0.4590 | **0.7435** | **+0.2845** |
+| **LPIPS Distance (↓)** | 0.8235 | **0.4387** | **-0.3848** (perceptual gain) |
+| **Crack Edge Energy** | 1.0000 | **0.2074** | **79.3% reduction** |

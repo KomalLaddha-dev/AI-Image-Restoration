@@ -112,29 +112,7 @@ def setup_bopbtl(backend_dir: Path) -> bool:
         return False
 
 
-def preload_clip_and_modelscope():
-    """Download CLIP and ModelScope weights if needed into local user cache."""
-    logger.info("Verifying CLIP ViT-B-32 and DDColor cache...")
-    try:
-        from sentence_transformers import SentenceTransformer
-        logger.info("Loading CLIP model (cached in ~/.cache/huggingface)...")
-        SentenceTransformer("clip-ViT-B-32")
-        logger.info("✓ CLIP ViT-B-32 ready.")
-    except Exception as e:
-        logger.warning(f"Note: CLIP model download will occur on first run: {e}")
-
-    try:
-        from modelscope.pipelines import pipeline
-        from modelscope.utils.constant import Tasks
-        logger.info("Loading DDColor ModelScope pipeline (cached in ~/.cache/modelscope)...")
-        pipeline(Tasks.image_colorization, model='damo/cv_ddcolor_image-colorization')
-        logger.info("✓ DDColor ModelScope ready.")
-    except Exception as e:
-        logger.warning(f"Note: DDColor download will occur on first run: {e}")
-
-
 def main():
-    # Resolve backend directory
     script_dir = Path(__file__).resolve().parent
     backend_dir = script_dir.parent
     model_dir = backend_dir / "models"
@@ -155,9 +133,6 @@ def main():
 
     # 2. Setup BOPBTL
     setup_bopbtl(backend_dir)
-
-    # 3. Preload HuggingFace & ModelScope models
-    preload_clip_and_modelscope()
 
     print("\n" + "=" * 60)
     logger.info("✅ All models verified and ready!")
