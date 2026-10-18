@@ -11,13 +11,15 @@ venv/
 .venv/
 env/
 
-# Models (large binary files)
-backend/models/
+# Models (large binary checkpoints > 50MB blocked by GitHub)
+backend/models/*.pth
 *.pth
-*.onnx
 *.tflite
 *.pt
 !backend/data/gallery_embeddings.pt
+!backend/models/labels.json
+!backend/models/monument_classifier.onnx
+!backend/models/.gitkeep
 
 # Environment
 .env

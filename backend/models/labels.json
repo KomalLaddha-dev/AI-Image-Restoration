@@ -1,0 +1,86 @@
+{
+  "0": {
+    "id": "taj_mahal",
+    "name": "Taj Mahal",
+    "location": "Agra, Uttar Pradesh, India",
+    "era": "1632\u20131653 CE",
+    "architectural_style": "Mughal architecture"
+  },
+  "1": {
+    "id": "red_fort",
+    "name": "Red Fort",
+    "location": "Delhi, India",
+    "era": "1638\u20131648 CE",
+    "architectural_style": "Mughal architecture"
+  },
+  "2": {
+    "id": "qutub_minar",
+    "name": "Qutub Minar",
+    "location": "Delhi, India",
+    "era": "1192\u20131220 CE",
+    "architectural_style": "Indo-Islamic architecture"
+  },
+  "3": {
+    "id": "colosseum",
+    "name": "Colosseum",
+    "location": "Rome, Italy",
+    "era": "70\u201380 CE",
+    "architectural_style": "Roman architecture"
+  },
+  "4": {
+    "id": "eiffel_tower",
+    "name": "Eiffel Tower",
+    "location": "Paris, France",
+    "era": "1887\u20131889 CE",
+    "architectural_style": "Wrought-iron lattice tower"
+  },
+  "5": {
+    "id": "pyramids_giza",
+    "name": "Pyramids of Giza",
+    "location": "Giza, Egypt",
+    "era": "c. 2580\u20132560 BCE",
+    "architectural_style": "Ancient Egyptian architecture"
+  },
+  "6": {
+    "id": "machu_picchu",
+    "name": "Machu Picchu",
+    "location": "Cusco Region, Peru",
+    "era": "c. 1450 CE",
+    "architectural_style": "Inca architecture"
+  },
+  "7": {
+    "id": "hawa_mahal",
+    "name": "Hawa Mahal",
+    "location": "Jaipur, Rajasthan, India",
+    "era": "1799 CE",
+    "architectural_style": "Rajput architecture"
+  },
+  "8": {
+    "id": "angkor_wat",
+    "name": "Angkor Wat",
+    "location": "Siem Reap, Cambodia",
+    "era": "12th century CE",
+    "architectural_style": "Khmer architecture"
+  },
+  "9": {
+    "id": "gateway_of_india",
+    "name": "Gateway of India",
+    "location": "Mumbai, Maharashtra, India",
+    "era": "1911\u20131924 CE",
+    "architectural_style": "Indo-Saracenic architecture"
+  },
+  "10": {
+    "id": "parthenon",
+    "name": "Parthenon",
+    "location": "Athens, Greece",
+    "era": "447\u2013432 BCE",
+    "architectural_style": "Classical Greek (Doric order)"
+  },
+  "11": {
+    "id": "statue_of_liberty",
+    "name": "Statue of Liberty",
+    "location": "New York, USA",
+    "era": "1875\u20131886 CE",
+    "architectural_style": "Neoclassical"
+  }
+}
