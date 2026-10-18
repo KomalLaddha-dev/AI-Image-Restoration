@@ -85,12 +85,8 @@ async def lifespan(app: FastAPI):
         if hasattr(torch.version, 'cuda'):
             logger.info(f"torch.version.cuda: {torch.version.cuda}")
 
-    # 1. Initialize restoration pipeline and preload ALL models
+    # 1. Initialize restoration pipeline (stages lazy-load weights on demand)
     _pipeline = RestorationPipeline()
-    logger.info("⏳ Preloading all ML models (DDColor, NAFNet, Real-ESRGAN, GFPGAN, BOPBTL)...")
-    _pipeline.preload()
-    logger.info("✅ All ML models preloaded — ready for requests")
-
     _restoration_service = RestorationService(_pipeline)
 
     # 2. Initialize monument identification

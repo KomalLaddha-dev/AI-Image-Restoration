@@ -20,6 +20,16 @@
     "file_path": "reference_gallery\\red_fort\\ref_2.jpg"
   },
   {
+    "monument_id": "red_fort",
+    "monument_name": "Red Fort",
+    "file_path": "reference_gallery\\red_fort\\ref_3.jpg"
+  },
+  {
+    "monument_id": "red_fort",
+    "monument_name": "Red Fort",
+    "file_path": "reference_gallery\\red_fort\\ref_4.jpg"
+  },
+  {
     "monument_id": "qutub_minar",
     "monument_name": "Qutub Minar",
     "file_path": "reference_gallery\\qutub_minar\\ref_1.jpg"

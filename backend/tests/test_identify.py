@@ -68,6 +68,36 @@ async def test_taj_mahal_degraded(service):
 
 
 @pytest.mark.asyncio
+async def test_red_fort_clean(service):
+    img_path = TEST_DATA_DIR / "in_gallery" / "red_fort" / "test_clean_1.jpg"
+    assert img_path.exists(), f"Held-out test image not found: {img_path}"
+
+    img = cv2.imread(str(img_path))
+    result = await service.identify(img)
+
+    assert isinstance(result, IdentifyResponse)
+    assert result.recognized is True
+    assert result.monument_id == "red_fort"
+    assert result.monument_name == "Red Fort"
+    assert result.confidence >= CONFIDENCE_THRESHOLD
+    assert result.location is not None
+
+
+@pytest.mark.asyncio
+async def test_red_fort_degraded(service):
+    img_path = TEST_DATA_DIR / "in_gallery" / "red_fort" / "test_degraded_sepia_scratches.jpg"
+    assert img_path.exists(), f"Held-out test image not found: {img_path}"
+
+    img = cv2.imread(str(img_path))
+    result = await service.identify(img)
+
+    assert isinstance(result, IdentifyResponse)
+    assert result.recognized is True
+    assert result.monument_id == "red_fort"
+    assert result.confidence >= CONFIDENCE_THRESHOLD
+
+
+@pytest.mark.asyncio
 async def test_colosseum_clean(service):
     img_path = TEST_DATA_DIR / "in_gallery" / "colosseum" / "test_clean_1.jpg"
     assert img_path.exists(), f"Held-out test image not found: {img_path}"

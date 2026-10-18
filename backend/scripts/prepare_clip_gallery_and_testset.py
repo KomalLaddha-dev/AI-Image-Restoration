@@ -118,9 +118,13 @@ def main():
         m_gallery_dir.mkdir(parents=True, exist_ok=True)
         m_test_dir.mkdir(parents=True, exist_ok=True)
 
-        # Search Wikimedia Commons
-        urls = search_commons(m_name, limit=20)
-        logger.info(f"Found {len(urls)} candidate URLs for {m_name}")
+        # Search Wikimedia Commons with iconic query if available
+        canonical_queries = {
+            "red_fort": "Lahori Gate Red Fort Delhi ramparts",
+        }
+        search_query = canonical_queries.get(m_id, m_name)
+        urls = search_commons(search_query, limit=20)
+        logger.info(f"Found {len(urls)} candidate URLs for {m_name} (query='{search_query}')")
 
         downloaded_paths = []
         for idx, u in enumerate(urls):
