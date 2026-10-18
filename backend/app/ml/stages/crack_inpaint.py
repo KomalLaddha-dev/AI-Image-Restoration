@@ -26,11 +26,12 @@ class CrackInpaintStage:
             return
 
         try:
-            from simple_lama_inpainting import SimpleLama
+            try:
+                from app.ml.stages.lama_inpaint import SimpleLama
+            except ImportError:
+                from simple_lama_inpainting import SimpleLama
             self._lama = SimpleLama()
             logger.info("LaMa loaded for crack inpainting.")
-        except ImportError:
-            logger.warning("simple-lama-inpainting not installed. Falling back to cv2.inpaint (lower quality).")
         except Exception as e:
             logger.warning(f"Failed to load LaMa: {e}. Falling back to cv2.inpaint.")
             
