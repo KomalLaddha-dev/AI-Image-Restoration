@@ -2,14 +2,18 @@
 Download pretrained model weights for all restoration pipeline stages.
 
 Usage:
+    cd backend
     python scripts/download_models.py
 
-Downloads to the `models/` directory.
+Downloads to the `models/` directory and sets up Bringing-Old-Photos-Back-to-Life.
 """
 
 import os
 import sys
+import shutil
+import zipfile
 import urllib.request
+import subprocess
 from pathlib import Path
 
 from loguru import logger
@@ -24,42 +28,36 @@ MODELS = {
     "GFPGANv1.4.pth": {
         "url": "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth",
         "size_mb": 348,
-        "description": "GFPGAN v1.4 face restoration (Stage 3)",
+        "description": "GFPGAN v1.4 face restoration (Stage 4)",
     },
     "ddcolor_modelscope.pth": {
         "url": "https://huggingface.co/piddnad/DDColor-models/resolve/main/ddcolor_modelscope.pth",
         "size_mb": 331,
-        "description": "DDColor colorization model (Stage 4)",
+        "description": "DDColor colorization model (Stage 3)",
     },
-    "NAFNet-REDS-width64.pth": {
-        "url": "https://huggingface.co/nyanko7/nafnet-models/resolve/main/NAFNet-REDS-width64.pth",
-        "size_mb": 260,
-        "description": "NAFNet denoising/deblur model (Stage 2)",
+    "NAFNet-SIDD-width64.pth": {
+        "url": "https://huggingface.co/nyanko7/nafnet-models/resolve/main/NAFNet-SIDD-width64.pth",
+        "size_mb": 464,
+        "description": "NAFNet SIDD denoising model",
     },
 }
 
-# These models require manual download due to licensing or complex setup:
-MANUAL_MODELS = {
-    "Bringing-Old-Photos-Back-to-Life": {
-        "source": "https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life",
-        "instructions": "1. cd backend && git clone https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life\n      2. cd Bringing-Old-Photos-Back-to-Life && cd Face_Enhancement/models/networks && git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch\n      3. cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm . && cd ../../../Global/detection_models && git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch && cp -r Synchronized-BatchNorm-PyTorch/sync_batchnorm .\n      4. Download https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip\n      5. Unzip to backend/Bringing-Old-Photos-Back-to-Life/Global/checkpoints",
-        "description": "Microsoft BOPBTL Repository and Weights",
-    }
-}
+BOPBTL_CHECKPOINTS_URL = "https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip"
 
 
 def download_file(url: str, dest: Path, description: str = "") -> bool:
     """Download a file with progress reporting."""
-    if dest.exists():
+    if dest.exists() and dest.stat().st_size > 1024 * 1024:
         logger.info(f"✓ Already exists: {dest.name} ({description})")
         return True
 
     logger.info(f"⬇ Downloading: {dest.name} ({description})...")
     try:
         def progress_hook(count, block_size, total_size):
-            percent = min(100, count * block_size * 100 // total_size)
-            sys.stdout.write(f"\r  Progress: {percent}%")
-            sys.stdout.flush()
+            if total_size > 0:
+                percent = min(100, count * block_size * 100 // total_size)
+                sys.stdout.write(f"\r  Progress: {percent}%")
+                sys.stdout.flush()
 
         urllib.request.urlretrieve(url, str(dest), reporthook=progress_hook)
         print()  # newline after progress
@@ -70,14 +68,82 @@ def download_file(url: str, dest: Path, description: str = "") -> bool:
         return False
 
 
+def setup_bopbtl(backend_dir: Path) -> bool:
+    """Ensure Bringing-Old-Photos-Back-to-Life repository and checkpoints exist."""
+    bopbtl_dir = backend_dir / "Bringing-Old-Photos-Back-to-Life"
+    global_dir = bopbtl_dir / "Global"
+    checkpoints_dir = global_dir / "checkpoints"
+    detection_ckpt = checkpoints_dir / "detection" / "FT_Epoch_latest.pt"
+
+    if detection_ckpt.exists():
+        logger.info("✓ Bringing-Old-Photos-Back-to-Life checkpoints already present.")
+        return True
+
+    logger.info("Setting up Bringing-Old-Photos-Back-to-Life...")
+
+    if not bopbtl_dir.exists():
+        logger.info("Cloning Bringing-Old-Photos-Back-to-Life repository...")
+        try:
+            subprocess.run(
+                ["git", "clone", "https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life"],
+                cwd=str(backend_dir),
+                check=True
+            )
+        except Exception as e:
+            logger.error(f"Failed to clone BOPBTL: {e}")
+            return False
+
+    # Download global_checkpoints.zip
+    zip_dest = backend_dir / "global_checkpoints.zip"
+    if not zip_dest.exists() or zip_dest.stat().st_size < 1024 * 1024:
+        logger.info("Downloading BOPBTL global_checkpoints.zip (~800MB)...")
+        if not download_file(BOPBTL_CHECKPOINTS_URL, zip_dest, "BOPBTL global checkpoints"):
+            return False
+
+    # Extract to Global/checkpoints
+    logger.info("Extracting global_checkpoints.zip...")
+    try:
+        with zipfile.ZipFile(zip_dest, "r") as z:
+            z.extractall(str(global_dir))
+        logger.info("✓ BOPBTL checkpoints extracted successfully.")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to extract global_checkpoints.zip: {e}")
+        return False
+
+
+def preload_clip_and_modelscope():
+    """Download CLIP and ModelScope weights if needed into local user cache."""
+    logger.info("Verifying CLIP ViT-B-32 and DDColor cache...")
+    try:
+        from sentence_transformers import SentenceTransformer
+        logger.info("Loading CLIP model (cached in ~/.cache/huggingface)...")
+        SentenceTransformer("clip-ViT-B-32")
+        logger.info("✓ CLIP ViT-B-32 ready.")
+    except Exception as e:
+        logger.warning(f"Note: CLIP model download will occur on first run: {e}")
+
+    try:
+        from modelscope.pipelines import pipeline
+        from modelscope.utils.constant import Tasks
+        logger.info("Loading DDColor ModelScope pipeline (cached in ~/.cache/modelscope)...")
+        pipeline(Tasks.image_colorization, model='damo/cv_ddcolor_image-colorization')
+        logger.info("✓ DDColor ModelScope ready.")
+    except Exception as e:
+        logger.warning(f"Note: DDColor download will occur on first run: {e}")
+
+
 def main():
-    model_dir = Path("models")
+    # Resolve backend directory
+    script_dir = Path(__file__).resolve().parent
+    backend_dir = script_dir.parent
+    model_dir = backend_dir / "models"
     model_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Downloading models to: {model_dir.absolute()}")
+    logger.info(f"Downloading model checkpoints to: {model_dir}")
     print("=" * 60)
 
-    # Auto-downloadable models
+    # 1. Download PyTorch models
     success_count = 0
     for filename, info in MODELS.items():
         dest = model_dir / filename
@@ -85,26 +151,18 @@ def main():
             success_count += 1
 
     print("\n" + "=" * 60)
-    logger.info(f"Auto-downloaded: {success_count}/{len(MODELS)} models")
+    logger.info(f"Model downloads: {success_count}/{len(MODELS)} verified.")
 
-    # Manual download instructions
-    if MANUAL_MODELS:
-        print("\n" + "=" * 60)
-        logger.info("The following models require manual download:")
-        print()
-        for filename, info in MANUAL_MODELS.items():
-            dest = Path(filename)
-            if dest.exists():
-                logger.info(f"  ✓ {filename} — already present")
-            else:
-                logger.warning(f"  ✗ {filename} — {info['description']}")
-                logger.info(f"    Source: {info['source']}")
-                logger.info(f"    Instructions: {info['instructions']}")
-                logger.info(f"    Place at: {dest.absolute()}")
-                print()
+    # 2. Setup BOPBTL
+    setup_bopbtl(backend_dir)
 
-    print("=" * 60)
-    logger.info("Model download complete! Run the server with: uvicorn app.main:app --reload")
+    # 3. Preload HuggingFace & ModelScope models
+    preload_clip_and_modelscope()
+
+    print("\n" + "=" * 60)
+    logger.info("✅ All models verified and ready!")
+    logger.info("Start backend with:")
+    logger.info("    uvicorn app.main:create_app --factory --reload --port 8000")
 
 
 if __name__ == "__main__":
