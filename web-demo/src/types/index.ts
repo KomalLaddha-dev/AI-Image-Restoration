@@ -23,6 +23,9 @@ export interface HistoryResponse {
   monument_id: string;
   name: string;
   summary: string;
+  category?: 'monument' | 'historical_figure' | string;
+  significance?: string | null;
+  audio_narration_text?: string | null;
   era?: string | null;
   builder?: string | null;
   architectural_style?: string | null;
@@ -40,8 +43,10 @@ export interface IdentifyResponse {
   monument_id: string;
   monument_name: string;
   confidence: number;
+  category?: 'monument' | 'historical_figure' | string;
   location?: string | null;
   era?: string | null;
+  significance?: string | null;
   thumbnail_url?: string | null;
   recognized: boolean;
 }

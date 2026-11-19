@@ -49,16 +49,17 @@ Existing consumer restoration tools either apply simplistic global filters, hall
 
 ## 3. What Does It Do? (Core Features & Subsystems)
 
-### Feature 1: Foundation-Model Monument Identification
+### Feature 1: Foundation-Model Heritage Landmark & Historical Figure Identification
 - **Open-Set Zero-Shot Concept**: Rather than training a brittle, closed-set classification head from scratch, the system uses OpenAI's CLIP image encoder trained on 400M internet-scale image-text pairs.
-- **Reference Gallery Matching**: Evaluates the cosine similarity between the query image embedding and canonical gallery photos across 12 world and Indian heritage landmarks:
-  * *Taj Mahal, Red Fort (Delhi), Qutub Minar, Colosseum, Eiffel Tower, Pyramids of Giza, Machu Picchu, Hawa Mahal, Angkor Wat, Gateway of India, Parthenon, Statue of Liberty*.
+- **Reference Gallery Matching**: Evaluates cosine similarity between query image embeddings and canonical gallery photos across **18 global monuments and prominent historical figures**:
+  * *Heritage Monuments*: Taj Mahal, Red Fort (Delhi), Qutub Minar, Colosseum, Eiffel Tower, Pyramids of Giza, Machu Picchu, Hawa Mahal, Angkor Wat, Gateway of India, Parthenon, Statue of Liberty.
+  * *Historical Figures*: Mahatma Gandhi, Swami Vivekananda, Netaji Subhas Chandra Bose, Dr. B. R. Ambedkar, Albert Einstein, Abraham Lincoln.
 - **Confidence Calibration with Softmax Temperature**:
   $$\text{Cosine Similarity: } s_i = \frac{v_q \cdot v_i}{\|v_q\| \|v_i\|}$$
   $$\text{Class Max-Pooling: } S_c = \max_{i \in \text{Gallery}(c)} s_i$$
   $$\text{Temperature Softmax: } P(c) = \frac{\exp(S_c / \tau)}{\sum_k \exp(S_k / \tau)}, \quad \tau = 0.03$$
-- **Out-of-Distribution (OOD) Guardrail**: If the top probability $P(c) < 0.65$, the system triggers `IdentifyNotRecognizedResponse` ("Monument Unconfirmed"), suggesting nearest matches rather than hallucinating an incorrect identity.
-- **Zero-Training Extensibility**: Adding any new monument (e.g., Big Ben, Konark Sun Temple) requires **zero neural network training**. Adding 2–3 canonical images to `backend/data/reference_gallery/<id>/` and running the embedding script computes the new embeddings in under 5 seconds.
+- **Out-of-Distribution (OOD) Guardrail**: If the top probability $P(c) < 0.65$, the system triggers `IdentifyNotRecognizedResponse` ("Subject Unconfirmed"), suggesting nearest matches rather than hallucinating an incorrect identity.
+- **Zero-Training Extensibility**: Adding any new monument or historical figure requires **zero neural network training**. Adding 1–3 canonical images to `backend/data/reference_gallery/<id>/` and running the embedding script registers the new subject in under 5 seconds.
 
 ### Feature 2: Deep Learning Image Restoration Pipeline
 Historical photographs present compound defects that cannot be solved by a single neural network. Heritage Restore executes an orchestrated 6-stage pipeline:
@@ -83,6 +84,16 @@ Historical photographs present compound defects that cannot be solved by a singl
 - **Zoom / Loupe Inspection Tool**: High-magnification viewport to inspect fine details (stone engravings, cloth textures, facial features).
 - **Fine-Grained Parameter Controls**: Interactive sliders for colorization vibrancy, denoising strength, resolution factor ($2\times / 4\times$), and crack inpainting toggles.
 - **Archival Provenance Sidebar**: Displays monument identification, confidence badge, architectural style, builder, coordinates, and historical timeline.
+
+### Feature 5: Audio Voice Narration (Text-to-Speech) Subsystem
+- **Zero-Latency Browser Speech Synthesis**: Integrated with the Web Speech API (`window.speechSynthesis`) to deliver natural voice narration without third-party API keys, paid credits, or cloud streaming delays.
+- **Dynamic Content Synthesis**: Narrates subject name, architectural/historical role, location, and verified historical significance.
+- **Interactive Player Controls**:
+  * Play / Pause / Resume with one-click responsive action.
+  * Stop & Reset controls.
+  * Speech Rate adjustment: Supports `0.85x` (Deliberate/Archival), `1.0x` (Natural), and `1.2x` (Brisk).
+  * Animated Sound Wave Visualizer: Real-time rhythmic audio wave bars indicating active speech playback.
+- **Omnipresent Access**: Embedded directly across the Hero Identification View, Archival Detail Page, and Heritage Browse Cards.
 
 ---
 

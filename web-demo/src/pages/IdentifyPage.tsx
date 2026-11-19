@@ -10,10 +10,13 @@ import {
   CheckCircle, 
   WarningCircle, 
   Sparkle,
-  Sliders
+  Sliders,
+  User,
+  Buildings
 } from '@phosphor-icons/react';
 import UploadZone from '../components/UploadZone';
 import ProgressBar from '../components/ProgressBar';
+import AudioNarrator from '../components/AudioNarrator';
 import { identifyMonument } from '../utils/api';
 import type { IdentifyResultData } from '../types';
 import { CONFIDENCE_THRESHOLD, CONFIDENCE_THRESHOLD_PERCENT } from '../constants/thresholds';
@@ -80,19 +83,19 @@ export default function IdentifyPage() {
         <div className="w-full max-w-3xl mx-auto px-6 md:px-12 py-12 md:py-20 flex flex-col items-center">
           <div className="text-center max-w-2xl mx-auto mb-10">
             <h1 className="font-heading text-4xl sm:text-5xl font-bold tracking-tight text-ink dark:text-ink-dark mb-3">
-              Monument <span className="italic font-normal text-accent-sepia">Identification</span>
+              Heritage <span className="italic font-normal text-accent-sepia">& Historical Figure</span> Identification
             </h1>
             <p className="text-sm md:text-base text-ink-muted dark:text-ink-muted-dark leading-relaxed">
-              Capture or upload any photograph of a historic site. Our computer vision classifier identifies the monument and retrieves its verified record.
+              Capture or upload any photograph of a historic monument or historical figure. Our computer vision classifier identifies the subject, retrieves verified historical significance, and provides voice audio narration.
             </p>
           </div>
 
           <UploadZone
             file={file}
             onFileSelect={setFile}
-            title="Upload Monument Photograph"
-            subtext="Snap a photo or upload an archival picture of any monument"
-            actionLabel="Scan & Identify Monument"
+            title="Upload Monument or Historical Figure Photo"
+            subtext="Snap or upload an archival picture of any historic site or personality"
+            actionLabel="Scan & Identify Subject"
             onAction={handleIdentify}
           />
 
@@ -163,6 +166,21 @@ export default function IdentifyPage() {
                   <span>{Math.round(result.confidence * 100)}% Match</span>
                 </div>
 
+                {/* Category Chip (Figure vs Monument) */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-panel text-xs font-semibold uppercase tracking-wider text-accent-sepia-light border border-accent-sepia/30">
+                  {result.category === 'historical_figure' ? (
+                    <>
+                      <User weight="fill" className="text-base text-accent-sepia" />
+                      <span>Historical Figure</span>
+                    </>
+                  ) : (
+                    <>
+                      <Buildings weight="fill" className="text-base text-accent-sepia" />
+                      <span>Heritage Landmark</span>
+                    </>
+                  )}
+                </div>
+
                 {result.location && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-panel text-xs font-medium text-white/90">
                     <MapPin weight="duotone" className="text-accent-sepia-light" />
@@ -178,10 +196,32 @@ export default function IdentifyPage() {
                 )}
               </div>
 
-              {/* Monument Name in Serif Heading Font */}
-              <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight leading-[1.05] mb-8 drop-shadow-md">
+              {/* Monument / Figure Name in Serif Heading Font */}
+              <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight leading-[1.05] mb-4 drop-shadow-md">
                 {result.monument_name}
               </h1>
+
+              {/* Historical Significance Excerpt if available */}
+              {result.significance && (
+                <p className="max-w-3xl text-sm sm:text-base text-white/90 font-normal leading-relaxed mb-6 drop-shadow bg-black/30 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                  {result.significance}
+                </p>
+              )}
+
+              {/* Audio TTS Feature: Text-to-Speech Narration Player */}
+              <div className="w-full max-w-xl mb-8">
+                <AudioNarrator
+                  title={result.monument_name}
+                  subtitle={result.location || result.era || null}
+                  text={
+                    result.significance ||
+                    `${result.monument_name} is a historic ${
+                      result.category === 'historical_figure' ? 'personality' : 'monument'
+                    } identified with ${Math.round(result.confidence * 100)} percent visual match.`
+                  }
+                  variant="hero"
+                />
+              </div>
 
               {/* CTA Row */}
               <div className="flex flex-wrap items-center gap-4">
@@ -197,7 +237,7 @@ export default function IdentifyPage() {
                   onClick={handleReset}
                   className="px-6 py-4 rounded-xl glass-panel text-white hover:text-white font-semibold text-xs tracking-wider uppercase transition-colors flex items-center gap-2"
                 >
-                  <ArrowsClockwise weight="bold" /> Scan Another Monument
+                  <ArrowsClockwise weight="bold" /> Scan Another Subject
                 </button>
               </div>
             </motion.div>

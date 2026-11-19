@@ -10,10 +10,14 @@ import {
   Compass, 
   ArrowUpRight, 
   Sparkle,
-  Sliders
+  Sliders,
+  User,
+  Buildings,
+  BookOpen
 } from '@phosphor-icons/react';
 import { getHistory } from '../utils/api';
 import BeforeAfterSlider from '../components/BeforeAfterSlider';
+import AudioNarrator from '../components/AudioNarrator';
 import type { HistoryResponse } from '../types';
 
 export default function HistoryDetail() {
@@ -45,6 +49,12 @@ export default function HistoryDetail() {
     if (id === 'qutub_minar') return '/samples/qutub_minar.jpg';
     if (id === 'colosseum') return '/samples/colosseum.jpg';
     if (id === 'pyramids_giza') return '/samples/pyramids_giza.jpg';
+    if (id === 'mahatma_gandhi') return '/samples/mahatma_gandhi.jpg';
+    if (id === 'swami_vivekananda') return '/samples/swami_vivekananda.jpg';
+    if (id === 'subhas_chandra_bose') return '/samples/subhas_chandra_bose.jpg';
+    if (id === 'br_ambedkar') return '/samples/br_ambedkar.jpg';
+    if (id === 'albert_einstein') return '/samples/albert_einstein.jpg';
+    if (id === 'abraham_lincoln') return '/samples/abraham_lincoln.jpg';
     if (data?.related_images && data.related_images.length > 0) {
       const first = data.related_images[0];
       return typeof first === 'string' ? first : first.url;
@@ -119,8 +129,23 @@ export default function HistoryDetail() {
               {data.name}
             </h1>
 
-            {/* Quick Architectural Badges */}
+            {/* Quick Badges */}
             <div className="flex flex-wrap items-center gap-3 text-xs font-medium">
+              {/* Category Indicator */}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent-sepia-faint border border-accent-sepia/30 text-accent-sepia font-semibold uppercase tracking-wider backdrop-blur-sm">
+                {data.category === 'historical_figure' ? (
+                  <>
+                    <User weight="fill" className="text-sm" />
+                    Historical Figure
+                  </>
+                ) : (
+                  <>
+                    <Buildings weight="fill" className="text-sm" />
+                    Historic Landmark
+                  </>
+                )}
+              </span>
+
               {data.location && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface/80 dark:bg-surface-dark/80 border border-border-theme backdrop-blur-sm">
                   <MapPin weight="duotone" className="text-accent-sepia" />
@@ -146,10 +171,32 @@ export default function HistoryDetail() {
 
       {/* ── 2. Editorial Summary & Architectural Record ─────────────────── */}
       <section className="w-full max-w-4xl mx-auto px-6 md:px-12 py-16 md:py-24">
+        {/* Interactive Audio Narration TTS Player */}
+        <div className="mb-12">
+          <AudioNarrator
+            title={data.name}
+            subtitle={data.location || data.era || null}
+            text={data.audio_narration_text || data.significance || data.summary}
+            variant="card"
+          />
+        </div>
+
+        {/* Historical Significance Callout Card (if present) */}
+        {data.significance && (
+          <div className="mb-12 p-6 md:p-8 rounded-3xl bg-accent-sepia-faint/40 border border-accent-sepia/30">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-sepia mb-3 font-mono flex items-center gap-2">
+              <Sparkle weight="fill" /> Enduring Significance & Impact
+            </h2>
+            <p className="text-sm sm:text-base text-ink/90 dark:text-ink-dark/90 leading-relaxed font-normal">
+              {data.significance}
+            </p>
+          </div>
+        )}
+
         {/* Historical Summary with Archival Drop Cap */}
         <div className="mb-16">
           <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-sepia mb-6 font-mono">
-            Historical Provenance
+            {data.category === 'historical_figure' ? 'Biographical Provenance' : 'Historical Provenance'}
           </h2>
           <p className="font-body text-base sm:text-lg md:text-xl text-ink/90 dark:text-ink-dark/90 leading-relaxed font-normal first-letter:font-heading first-letter:text-6xl md:first-letter:text-7xl first-letter:float-left first-letter:pr-4 first-letter:font-bold first-letter:text-accent-sepia first-letter:leading-none">
             {data.summary}
@@ -207,12 +254,12 @@ export default function HistoryDetail() {
           </div>
         )}
 
-        {/* Architectural Specifications Grid */}
+        {/* Specifications Grid */}
         <div className="my-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-12 border-t border-border-theme">
           {data.builder && (
             <div className="p-5 rounded-2xl bg-surface dark:bg-surface-dark border border-border-theme">
               <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted dark:text-ink-muted-dark block mb-1">
-                Builder / Patron
+                {data.category === 'historical_figure' ? 'Role & Historical Title' : 'Builder / Patron'}
               </span>
               <p className="font-heading font-semibold text-base text-ink dark:text-ink-dark">
                 {data.builder}
@@ -223,7 +270,7 @@ export default function HistoryDetail() {
           {data.architectural_style && (
             <div className="p-5 rounded-2xl bg-surface dark:bg-surface-dark border border-border-theme">
               <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted dark:text-ink-muted-dark block mb-1">
-                Architectural Style
+                {data.category === 'historical_figure' ? 'Philosophical / Historical Domain' : 'Architectural Style'}
               </span>
               <p className="font-heading font-semibold text-base text-ink dark:text-ink-dark">
                 {data.architectural_style}

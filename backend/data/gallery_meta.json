@@ -128,5 +128,41 @@
     "monument_id": "statue_of_liberty",
     "monument_name": "Statue of Liberty",
     "file_path": "reference_gallery\\statue_of_liberty\\ref_2.jpg"
+  },
+  {
+    "monument_id": "mahatma_gandhi",
+    "monument_name": "Mahatma Gandhi",
+    "file_path": "reference_gallery\\\\mahatma_gandhi\\\\ref_1.jpg",
+    "category": "historical_figure"
+  },
+  {
+    "monument_id": "swami_vivekananda",
+    "monument_name": "Swami Vivekananda",
+    "file_path": "reference_gallery\\\\swami_vivekananda\\\\ref_1.jpg",
+    "category": "historical_figure"
+  },
+  {
+    "monument_id": "subhas_chandra_bose",
+    "monument_name": "Netaji Subhas Chandra Bose",
+    "file_path": "reference_gallery\\\\subhas_chandra_bose\\\\ref_1.jpg",
+    "category": "historical_figure"
+  },
+  {
+    "monument_id": "br_ambedkar",
+    "monument_name": "Dr. B. R. Ambedkar",
+    "file_path": "reference_gallery\\\\br_ambedkar\\\\ref_1.jpg",
+    "category": "historical_figure"
+  },
+  {
+    "monument_id": "albert_einstein",
+    "monument_name": "Albert Einstein",
+    "file_path": "reference_gallery\\\\albert_einstein\\\\ref_1.jpg",
+    "category": "historical_figure"
+  },
+  {
+    "monument_id": "abraham_lincoln",
+    "monument_name": "Abraham Lincoln",
+    "file_path": "reference_gallery\\\\abraham_lincoln\\\\ref_1.jpg",
+    "category": "historical_figure"
   }
 ]

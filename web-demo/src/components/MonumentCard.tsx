@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Clock, ArrowRight } from '@phosphor-icons/react';
+import AudioNarrator from './AudioNarrator';
 
 interface MonumentCardProps {
   id: string;
@@ -9,6 +10,8 @@ interface MonumentCardProps {
   era?: string | null;
   imageUrl?: string | null;
   confidence?: number;
+  category?: string;
+  significance?: string;
 }
 
 export default function MonumentCard({
@@ -67,8 +70,19 @@ export default function MonumentCard({
           )}
         </div>
 
-        <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-sepia group-hover:gap-2.5 transition-all">
-          Explore Record <ArrowRight weight="bold" />
+        <div className="flex items-center justify-between pt-2 border-t border-border-theme/40">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-sepia group-hover:gap-2.5 transition-all">
+            Explore Record <ArrowRight weight="bold" />
+          </div>
+
+          <div onClick={(e) => e.stopPropagation()}>
+            <AudioNarrator
+              title={name}
+              subtitle={location || era || null}
+              text={`${name}, ${era || ''}. ${location ? `Associated with ${location}.` : ''}`}
+              variant="inline"
+            />
+          </div>
         </div>
       </div>
     </Link>

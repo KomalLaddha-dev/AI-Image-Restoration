@@ -9,13 +9,14 @@ import {
   Books, 
   Lightning,
   Eye,
-  Camera
+  Camera,
+  SpeakerHigh
 } from '@phosphor-icons/react';
 import BeforeAfterSlider from '../components/BeforeAfterSlider';
 import MonumentCard from '../components/MonumentCard';
 
 export default function Home() {
-  const curatedMonuments = [
+  const curatedHeritage = [
     {
       id: 'taj_mahal',
       name: 'Taj Mahal',
@@ -23,6 +24,25 @@ export default function Home() {
       era: '1632–1653 CE',
       imageUrl: '/samples/taj_mahal.jpg',
       confidence: 0.98,
+      category: 'monument',
+    },
+    {
+      id: 'mahatma_gandhi',
+      name: 'Mahatma Gandhi',
+      location: 'Porbandar & New Delhi, India',
+      era: '1869–1948 CE',
+      imageUrl: '/samples/mahatma_gandhi.jpg',
+      confidence: 0.97,
+      category: 'historical_figure',
+    },
+    {
+      id: 'swami_vivekananda',
+      name: 'Swami Vivekananda',
+      location: 'Kolkata & Belur Math, India',
+      era: '1863–1902 CE',
+      imageUrl: '/samples/swami_vivekananda.jpg',
+      confidence: 0.95,
+      category: 'historical_figure',
     },
     {
       id: 'qutub_minar',
@@ -31,6 +51,16 @@ export default function Home() {
       era: '1192–1220 CE',
       imageUrl: '/samples/qutub_minar.jpg',
       confidence: 0.94,
+      category: 'monument',
+    },
+    {
+      id: 'br_ambedkar',
+      name: 'Dr. B. R. Ambedkar',
+      location: 'Mhow & New Delhi, India',
+      era: '1891–1956 CE',
+      imageUrl: '/samples/br_ambedkar.jpg',
+      confidence: 0.96,
+      category: 'historical_figure',
     },
     {
       id: 'colosseum',
@@ -39,6 +69,7 @@ export default function Home() {
       era: '70–80 CE',
       imageUrl: '/samples/colosseum.jpg',
       confidence: 0.91,
+      category: 'monument',
     },
   ];
 
@@ -149,18 +180,18 @@ export default function Home() {
               },
               {
                 icon: <Brain weight="duotone" />,
-                title: 'Landmark Recognition',
-                desc: 'Fine-tuned MobileNetV3 classifier recognizes architectural features and geometry across global monuments.',
+                title: 'Landmark & Figure AI',
+                desc: 'Visual recognition identifies architectural monuments and prominent historical personalities with calibrated certainty.',
+              },
+              {
+                icon: <SpeakerHigh weight="duotone" />,
+                title: 'Audio Voice Narration',
+                desc: 'Built-in text-to-speech audio narration reads verified historical provenance and significance aloud.',
               },
               {
                 icon: <Books weight="duotone" />,
                 title: 'Grounded Records',
                 desc: 'Zero hallucinated timelines. Every summary and milestone is sourced directly from academic corpus archives.',
-              },
-              {
-                icon: <Lightning weight="duotone" />,
-                title: 'Sub-15s Inference',
-                desc: 'Optimized PyTorch inference pipeline delivers rapid restoration with sub-second monument lookups.',
               },
             ].map((feature, i) => (
               <div
@@ -182,15 +213,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 4. Curated Monument Browse (Section 4.c: Card Thumbnails) ───── */}
+      {/* ── 4. Curated Heritage Browse (Monuments & Historical Figures) ───── */}
       <section className="w-full max-w-7xl mx-auto py-24 px-6 md:px-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-ink dark:text-ink-dark mb-2">
-              Archival Monument Records
+              Archival Heritage & Historical Figures
             </h2>
             <p className="text-sm md:text-base text-ink-muted dark:text-ink-muted-dark">
-              Explore monuments with verified architectural histories and restoration studies.
+              Explore global monuments and iconic historical leaders with verified provenance, restoration studies, and audio narration.
             </p>
           </div>
 
@@ -202,8 +233,8 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {curatedMonuments.map((m) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          {curatedHeritage.map((m) => (
             <MonumentCard
               key={m.id}
               id={m.id}

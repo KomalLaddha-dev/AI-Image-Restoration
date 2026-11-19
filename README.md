@@ -17,10 +17,11 @@
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        HERITAGE RESTORE SYSTEM                         │
 ├──────────────────────────────────┬─────────────────────────────────────┤
-│  1. Monument Identification      │  2. Historical RAG Knowledge Base   │
-│  • CLIP (clip-ViT-B-32)          │  • Verified Wikipedia Corpora       │
+│  1. Visual Identification        │  2. Historical RAG & Audio Engine   │
+│  • CLIP (clip-ViT-B-32) + Gallery│  • Verified Wikipedia Corpora       │
 │  • Softmax (tau=0.03, T=0.65)    │  • FAISS (all-MiniLM-L6-v2) Index   │
-│  • 12 Heritage Landmarks         │  • Groq Qwen/Llama + JSON Fallback  │
+│  • 12 Monuments + 6 Figures      │  • Groq LLM + JSON Fact Fallback    │
+│  • Calibrated OOD Rejection      │  • Interactive TTS Audio Narrator   │
 ├──────────────────────────────────┴─────────────────────────────────────┤
 │  3. Multi-Stage Heritage Restoration Pipeline (max_side=768, HR=False) │
 │  [Crack Inpaint]  ──> [BOPBTL Global] ──> [DDColor LAB] ──> [ESRGAN]   │
@@ -28,13 +29,14 @@
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1. Monument Recognition ("The Left Part")
-- **Primary Engine**: OpenAI CLIP (`clip-ViT-B-32`) visual embeddings with precomputed reference gallery.
-- **Calibrated Scoring**: Temperature-scaled ($\tau = 0.03$) softmax across monument classes with a unified threshold ($T = 0.65$).
+### 1. Heritage Landmark & Historical Figure Recognition
+- **Primary Engine**: OpenAI CLIP (`clip-ViT-B-32`) visual embeddings with precomputed reference gallery covering 18 historical entities (12 world monuments and 6 iconic historical figures including Mahatma Gandhi, Swami Vivekananda, Netaji Subhas Chandra Bose, Dr. B. R. Ambedkar, Albert Einstein, and Abraham Lincoln).
+- **Calibrated Scoring**: Temperature-scaled ($\tau = 0.03$) softmax across classes with unified verification threshold ($T = 0.65$).
 - **Held-Out Test Performance**: 86.5% Precision, 80.4% Recall, 83.3% F1, 85.0% Out-of-Distribution Rejection across 80 held-out images.
 
-### 2. Verified Knowledge Base ("The Right Part")
-- **Archival Corpus**: 12 curated historical landmarks with Wikipedia `CC BY-SA` citations and verified facts.
+### 2. Verified Knowledge Base & Audio Voice Narration
+- **Archival Corpus**: 18 curated historical subjects with verified citations, biographical/architectural records, and enduring significance.
+- **Text-to-Speech (TTS) Narration**: Built-in speech synthesis engine (`AudioNarrator`) with playback rate control (0.85x, 1x, 1.2x), animated waveform visualizers, and natural voice narration of historical provenance.
 - **Retriever**: FAISS dense vector search over verified chunks with `sentence-transformers/all-MiniLM-L6-v2`.
 - **Grounded Provenance**: Groq LLM synthesis with graceful fallback to structured JSON facts when an API key is absent.
 

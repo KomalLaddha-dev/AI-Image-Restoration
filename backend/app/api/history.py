@@ -140,14 +140,30 @@ async def get_monument_history(
         logger.error(f"RAG generation failed for {monument_id}: {e}")
 
     # Fallback summary from metadata
+    category = metadata.get("category", "monument")
+    significance = metadata.get("significance")
+
     if not summary:
-        summary = (
-            f"{metadata['name']} is a historic monument located in "
-            f"{metadata.get('location', 'an undisclosed location')}. "
-            f"It was built during {metadata.get('era', 'an unknown era')}"
-            f"{' by ' + metadata['builder'] if metadata.get('builder') else ''}. "
-            f"It is recognized as a {metadata.get('architectural_style', 'significant architectural')} landmark."
-        )
+        if category == "historical_figure":
+            summary = (
+                f"{metadata['name']} ({metadata.get('era', 'historical era')}) was a renowned "
+                f"{metadata.get('builder', 'historical figure')} associated with {metadata.get('location', 'world history')}. "
+                f"{significance or ''}"
+            )
+        else:
+            summary = (
+                f"{metadata['name']} is a historic monument located in "
+                f"{metadata.get('location', 'an undisclosed location')}. "
+                f"It was built during {metadata.get('era', 'an unknown era')}"
+                f"{' by ' + metadata['builder'] if metadata.get('builder') else ''}. "
+                f"It is recognized as a {metadata.get('architectural_style', 'significant architectural')} landmark. "
+                f"{significance or ''}"
+            )
+
+    # Prepare speech narration text for TTS
+    speech_intro = f"{metadata['name']}, {metadata.get('builder', '')}."
+    speech_body = significance if significance else summary
+    audio_narration = f"{speech_intro} {speech_body}".strip()
 
     # Build timeline
     timeline = [
@@ -159,6 +175,9 @@ async def get_monument_history(
         monument_id=monument_id,
         name=metadata["name"],
         summary=summary,
+        category=category,
+        significance=significance,
+        audio_narration_text=audio_narration,
         era=metadata.get("era"),
         builder=metadata.get("builder"),
         architectural_style=metadata.get("architectural_style"),

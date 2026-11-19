@@ -100,17 +100,21 @@ class IdentificationService:
             meta = self._monument_metadata.get(monument_id, {})
             location = meta.get("location")
             era = meta.get("era")
+            category = meta.get("category", "monument")
+            significance = meta.get("significance")
 
             logger.info(
-                f"Identified '{monument_name}' ({monument_id}) with {confidence*100:.1f}% confidence"
+                f"Identified '{monument_name}' ({monument_id}, category={category}) with {confidence*100:.1f}% confidence"
             )
 
             return IdentifyResponse(
                 monument_id=monument_id,
                 monument_name=monument_name,
                 confidence=confidence,
+                category=category,
                 location=location,
                 era=era,
+                significance=significance,
                 recognized=True,
             )
 

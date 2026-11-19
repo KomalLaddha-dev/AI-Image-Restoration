@@ -104,12 +104,14 @@ class RestoreResultResponse(BaseModel):
 # ─── Monument Identification ─────────────────────────────────────────────────
 
 class IdentifyResponse(BaseModel):
-    """Response after identifying a monument from an image."""
+    """Response after identifying a monument or historical figure from an image."""
     monument_id: str
     monument_name: str
     confidence: float = Field(ge=0.0, le=1.0)
+    category: str = Field(default="monument", description="'monument' or 'historical_figure'")
     location: str | None = None
     era: str | None = None
+    significance: str | None = None
     thumbnail_url: str | None = None
     recognized: bool = True
 
@@ -137,10 +139,13 @@ class TimelineEvent(BaseModel):
 
 
 class HistoryResponse(BaseModel):
-    """Full historical info card for a monument."""
+    """Full historical info card for a monument or historical figure."""
     monument_id: str
     name: str
     summary: str
+    category: str = "monument"
+    significance: str | None = None
+    audio_narration_text: str | None = None
     era: str | None = None
     builder: str | None = None
     architectural_style: str | None = None
